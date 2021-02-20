@@ -39,12 +39,15 @@ pub struct Board {
     pub moves_count: u32,
     pub half_move_count: u32,
     pub turn: bool,
+    last_repeated: u8,
+    last_black_square: u8,
+    last_white_square: u8
 }
 
 impl Board {
     pub fn new() -> Self {
         let p: Piece = Piece::new(Piece::Empty, Square::NO_SQUARE);
-        Self { table: [p ; 64], castling_ability: 0b0000, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false, bitboard: [0b1111; 64] }
+        Self { table: [p ; 64], castling_ability: 0b0000, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false, bitboard: [0b1111; 64], last_repeated: 0, last_black_square: 64, last_white_square: 64 }
     }
     pub fn print_debug_board_table(&self) {
         println!("{:?}", self.table);
@@ -62,28 +65,156 @@ impl Board {
         false
     }
 
-    pub fn move_piece(&mut self, piece: Piece, square: Square) {
-        println!("Can we move piece?");
-        if Perms.is_can_move(&self, &piece, &square) {
-            println!("Moving piece");
-            self.clear_piece_square(piece);
-            self.set_piece_location(piece, square)
-        }
+    pub fn is_incheck (&self) -> bool{
+        Perms.is_king_in_check(self)
     }
 
-    fn set_piece_location(&mut self, mut piece: Piece, square: Square) {
+    pub fn is_stale_mate(&self) -> bool {
+        let king = self.get_king();
+        if Perms.is_stalemate(self, king) {
+            return true;
+        }
+        false
+    }
+
+    pub fn is_draw(&self) -> bool {
+        if self.half_move_count > 50 {
+            return true;
+        }
+        if self.last_repeated > 5 {
+            return true;
+        }
+        for piece in self.pieces_left() {
+            if (piece.get_piece() == Piece::WPAWN || piece.get_piece() == Piece::BPAWN) && self.half_move_count < 50 {
+                return false;
+            }
+            if self.count_values_black() > 3 && self.count_values_white() > 3 {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    pub fn count_values_white(&self) -> u8 {
+        let mut count: u8 = 0;
+        for piece in self.pieces_left() {
+            count += match piece.get_piece() {
+                Piece::WKNIGHT => 3,
+                Piece::WBISHOP => 3,
+                Piece::WPAWN => 3,
+                Piece::WROOK => 3,
+                Piece::WQUEEN => 3,
+                _ => 0
+            }
+        }
+        count
+    }
+    pub fn count_values_black(&self) -> u8 {
+        let mut count: u8 = 0;
+        for piece in self.pieces_left() {
+            count += match piece.get_piece() {
+                Piece::BKNIGHT => 3,
+                Piece::BBISHOP => 3,
+                Piece::BPAWN => 3,
+                Piece::BROOK => 3,
+                Piece::BQUEEN => 3,
+                _ => 0
+            }
+        }
+        count
+    }
+
+    fn pieces_left(&self) -> Vec<Piece> {
+        let mut vec = Vec::new();
+        for &piece in self.table.iter() {
+            if piece.get_piece() != Piece::Empty {
+                vec.push(piece);
+            }
+        }
+        vec
+    }
+
+    fn increment_half_move(&mut self) {
+        self.half_move_count += 1;
+    }
+
+    fn reset_half_moves(&mut self) {
+        self.half_move_count = 0;
+    }
+
+    fn increment_last_repeated(&mut self) {
+        self.last_repeated += 1;
+    }
+    fn reset_last_repeated(&mut self) {
+        self.last_repeated = 0;
+    }
+
+    fn increment_move(&mut self) {
+        self.moves_count += 1;
+    }
+
+    pub fn move_piece(&mut self, piece: Piece, square: Square, promote: u8) -> bool {
+        if Perms.is_can_move(&self, &piece, &square) {
+            let mut is_promote = false;
+            if piece.get_piece() != Piece::WPAWN && piece.get_piece() != Piece::BPAWN {
+                if self.table[square.get_square_int() as usize].get_piece() == Piece::Empty {
+                    self.increment_half_move();
+                }
+                if self.turn {
+                    if self.last_black_square == square.get_square_int() {
+                        self.increment_last_repeated();
+                    } else {
+                        self.reset_last_repeated();
+                    }
+                    self.last_black_square = square.get_square_int();
+    
+                } else {
+                    if self.last_white_square == square.get_square_int() {
+                        self.increment_last_repeated();
+                    } else {
+                        self.reset_last_repeated();
+                    }
+                    self.last_white_square = square.get_square_int();
+    
+                }
+            } else {
+                if (square.get_square_int()/8 == 7 || square.get_square_int()/8 == 0) {
+                    is_promote = true;
+                }
+            }
+
+
+            self.clear_piece_square(piece);
+            self.set_piece_location(piece, square, is_promote, promote);
+            return true;
+        }
+        false
+    }
+
+    fn set_piece_location(&mut self, mut piece: Piece, square: Square, is_promote: bool, promote: u8) {
+        piece = Piece::new(piece.piece, square);
+        if is_promote {
+            piece = match promote {
+                0 => Piece::new(if self.turn {Piece::BQUEEN} else {Piece::WQUEEN}, square),
+                1 => Piece::new(if self.turn {Piece::BROOK} else {Piece::WROOK}, square),
+                2 => Piece::new(if self.turn {Piece::BBISHOP} else {Piece::WBISHOP}, square),
+                3 => Piece::new(if self.turn {Piece::BKNIGHT} else {Piece::WKNIGHT}, square),
+                _ => piece
+            }
+        }
         self.table[square.0 as usize] = piece;
         self.bitboard[square.0 as usize] = piece.piece;
         piece.set_square(square);
     }
     fn clear_piece_square(&mut self, piece: Piece) {
-        self.set_piece_location(Piece::new(Piece::Empty, piece.square), piece.square);
+        self.set_piece_location(Piece::new(Piece::Empty, piece.square), piece.square, false, 0);
     }
 
     fn set_turn(&mut self, turn: bool) {
         self.turn = turn;
     }
-    fn switch_turn(&mut self) {
+    pub fn switch_turn(&mut self) {
         self.turn = !self.turn;
     }
     fn set_castling_ability(&mut self, castling_ability: u8) {
@@ -143,7 +274,7 @@ impl Board {
                      if _piece.get_piece() == Piece::Empty {
                          return Err(FenError::InvalidFenPieceType {piece: p});
                      } else {
-                         self.set_piece_location(_piece, Square::new(c));
+                         self.set_piece_location(_piece, Square::new(c), false, 0);
                      }
                 }
                 c += 1;
@@ -228,8 +359,8 @@ impl Board {
 
     fn resolve_fen_turn(&self, c: char) -> bool {
         match c {
-            'w' => true,
-            'b' => false,
+            'w' => false,
+            'b' => true,
             _ => true
         }
     }
