@@ -105,6 +105,36 @@ impl Game {
         self.board.initialize_classic_start_board();
     }
 
+    pub fn test_checkmate (&mut self) {
+        self.init();
+        self.board.move_piece(self.board.table[Square::E2.get_square_int() as usize], Square::E4, 0);
+        self.board.switch_turn();
+        self.board.move_piece(self.board.table[Square::F7.get_square_int() as usize], Square::F5, 0);
+        self.board.switch_turn();
+        self.board.move_piece(self.board.table[Square::D1.get_square_int() as usize], Square::H5, 0);
+        self.board.switch_turn();
+        self.board.move_piece(self.board.table[Square::G7.get_square_int() as usize], Square::G6, 0);
+        self.board.switch_turn();
+        self.board.move_piece(self.board.table[Square::F1.get_square_int() as usize], Square::E2, 0);
+        self.board.switch_turn();
+        self.board.move_piece(self.board.table[Square::G6.get_square_int() as usize], Square::H5, 0);
+        self.board.switch_turn();
+        self.board.move_piece(self.board.table[Square::E2.get_square_int() as usize], Square::H5, 0);
+        self.board.switch_turn();
+        CLI.print_board(self.board.bitboard);
+        println!("{} turn now..", if self.board.turn {"Black"} else {"White"} );
+        if self.board.is_incheck() {
+            println!("{} King in Check!", if self.board.turn {"Black"} else {"White"});
+        }
+        if self.board.is_checkmate() {
+            println!("yay")
+        } else { 
+            println!("nay");
+         }
+
+
+    }
+
     fn _play (&mut self) -> Winner {
         self.init();
         while self.winner == Winner::NONE {

@@ -48,7 +48,7 @@ pub struct Board {
 impl Board {
     pub fn new() -> Self {
         let p: Piece = Piece::new(Piece::Empty, Square::NO_SQUARE);
-        Self { table: [p ; 64], castling_ability: 0b0000, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false, bitboard: [0b1111; 64], last_repeated: 0, last_black_square: 64, last_white_square: 64 }
+        Self { table: [p ; 64], castling_ability: 0b1111, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false, bitboard: [0b1111; 64], last_repeated: 0, last_black_square: 64, last_white_square: 64 }
     }
     /*pub fn print_debug_board_table(&self) {
         println!("{:?}", self.table);
@@ -86,6 +86,24 @@ impl Board {
         let king = self.get_king();
         if Perms.is_stalemate(self, king) {
             return true;
+        }
+        false
+    }
+
+    fn is_can_castle_queen_side (&self) -> bool {
+        if self.castling_ability & (1 << if self.turn {2} else {0}) != 0 {
+            if Perms.is_can_castle(self, self.get_king(), false) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn is_can_castle_king_side (&self) -> bool {
+        if self.castling_ability & (1 << if self.turn {3} else {1}) != 0 {
+            if Perms.is_can_castle(self, self.get_king(), false) {
+                return true;
+            }
         }
         false
     }
@@ -168,6 +186,43 @@ impl Board {
     }
 
     pub fn move_piece(&mut self, piece: Piece, square: Square, promote: u8) -> bool {
+        if piece.get_piece() == Piece::BKING | if self.turn { 0 } else {0b1000} && piece.square.get_square_int() == Square::E8.get_square_int() + if self.turn {0} else {56} {
+            if square.get_square_int() == Square::C8.get_square_int() + if self.turn {0} else {56} {
+                if 1 << if self.turn {2} else {0} & self.castling_ability != 0 {
+                    if !Perms.is_king_in_check(self) {
+                        if self.is_can_castle_queen_side() {
+                            //swipe king rook
+                            self.clear_piece_square(piece);
+                            self.set_piece_location(piece, square, false, 0);
+
+                            let rook = self.table[(Square::A8.get_square_int() + if self.turn {0} else {56}) as usize];
+                            self.clear_piece_square(rook);
+                            self.set_piece_location(rook, self.table[(Square::D8.get_square_int() + if self.turn {0} else {56}) as usize].square, false, 0);
+                            self.disable_castling();
+                            return true;
+                        }
+                    }
+                }
+            } else if square.get_square_int() == Square::G8.get_square_int() + if self.turn {0} else {56} {
+                if 1 << if self.turn {3} else {1} & self.castling_ability != 0 {
+                    if !Perms.is_king_in_check(self) {
+                        if self.is_can_castle_king_side() {
+
+                            //swipe king rook
+                            self.clear_piece_square(piece);
+                            self.set_piece_location(piece, square, false, 0);
+
+                            let rook = self.table[(Square::H8.get_square_int() + if self.turn {0} else {56}) as usize];
+                            self.clear_piece_square(rook);
+                            self.set_piece_location(rook, self.table[(Square::F8.get_square_int() + if self.turn {0} else {56}) as usize].square, false, 0);
+                            self.set_castling_ability(self.castling_ability & ((0b11 << if self.turn {2} else {0}) ^ 0b1111 ));
+                            self.disable_castling();
+                            return true;                            
+                        }
+                    }
+                }
+            }
+        }
         if Perms.is_can_move(&self, &piece, &square) {
             let mut is_promote = false;
             if piece.get_piece() != Piece::WPAWN && piece.get_piece() != Piece::BPAWN {
@@ -203,6 +258,15 @@ impl Board {
 
             self.clear_piece_square(piece);
             self.set_piece_location(piece, square, is_promote, promote);
+            if piece.get_piece() == Piece::BKING || piece.get_piece() == Piece::WKING {
+                self.disable_castling();
+            } else if piece.get_piece() == Piece::BROOK || piece.get_piece() == Piece::WROOK {
+                if piece.square.get_square_int() == Square::A8.get_square_int() + if self.turn {0} else {56} {
+                    self.set_castling_ability(self.castling_ability & (1<<(if self.turn {2} else {0}) ^ 0b1111 ));
+                } else if piece.square.get_square_int() == Square::H8.get_square_int() + if self.turn {0} else {56} {
+                    self.set_castling_ability(self.castling_ability & (1<<(if self.turn {3} else {1}) ^ 0b1111 ));
+                }
+            }
             return true;
         }
         false
@@ -253,6 +317,9 @@ impl Board {
     }
     fn set_moves_count(&mut self, moves_count: u32) {
         self.moves_count = moves_count;
+    }
+    fn disable_castling(&mut self) {
+        self.set_castling_ability(self.castling_ability & ((if self.turn {0b1100} else {0b11}) ^ 0b1111 ));
     }
 
     pub fn get_king(&self) -> Piece {
