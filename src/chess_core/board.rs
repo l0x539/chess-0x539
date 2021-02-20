@@ -33,6 +33,7 @@ fn is_digit(s: &str) -> bool{
 #[derive(Debug, Clone, Copy)]
 pub struct Board {
     pub table: [Piece; 64],
+    pub bitboard: [u8; 64],
     pub castling_ability: u8,
     pub en_passent_square: Square,
     pub moves_count: u32,
@@ -43,20 +44,40 @@ pub struct Board {
 impl Board {
     pub fn new() -> Self {
         let p: Piece = Piece::new(Piece::Empty, Square::NO_SQUARE);
-        Self { table: [p ; 64], castling_ability: 0b0000, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false }
+        Self { table: [p ; 64], castling_ability: 0b0000, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false, bitboard: [0b1111; 64] }
     }
-    pub fn print_debug_board(&self) {
+    pub fn print_debug_board_table(&self) {
         println!("{:?}", self.table);
     }
 
+    pub fn print_debug_bitboard(&self) {
+        println!("{:?}", self.bitboard);
+    }
+
+    pub fn is_checkmate(&self) -> bool {
+        let king = self.get_king();
+        if Perms.is_checkmate(self, king) {
+            return true;
+        }
+        false
+    }
+
     pub fn move_piece(&mut self, piece: Piece, square: Square) {
-        if (Perms::is_can_move(&self, &piece, &square)) {
+        println!("Can we move piece?");
+        if Perms.is_can_move(&self, &piece, &square) {
+            println!("Moving piece");
+            self.clear_piece_square(piece);
             self.set_piece_location(piece, square)
         }
     }
 
-    fn set_piece_location(&mut self, piece: Piece, square: Square) {
+    fn set_piece_location(&mut self, mut piece: Piece, square: Square) {
         self.table[square.0 as usize] = piece;
+        self.bitboard[square.0 as usize] = piece.piece;
+        piece.set_square(square);
+    }
+    fn clear_piece_square(&mut self, piece: Piece) {
+        self.set_piece_location(Piece::new(Piece::Empty, piece.square), piece.square);
     }
 
     fn set_turn(&mut self, turn: bool) {
@@ -78,8 +99,27 @@ impl Board {
         self.moves_count = moves_count;
     }
 
+    pub fn get_king(&self) -> Piece {
+        for piece in self.table.iter() {
+            if self.turn {
+                if piece.get_piece() == Piece::BKING {
+                    return *piece;
+                }
+            } else {
+                if piece.get_piece() == Piece::WKING {
+                    return *piece;
+                }
+            }
+        }
+        self.table[Square::E1.get_square_int() as usize]
+    }
+
     pub fn initialize_classic_start_board(&mut self) {
-        self.fen(FEN_START_BOARD);
+        let r = self.fen(FEN_START_BOARD);
+        match r {
+            Ok(ok) => println!("Board initialized: {:?}", ok.bitboard),
+            Err(e) => println!("{:?}", e)
+        }
     }
     pub fn fen(&mut self, s: &str) -> Result<Board, FenError> {
         // Split to FEN fields
@@ -95,7 +135,7 @@ impl Board {
         let mut c: u8 = 0;
         for rank in piece_placement_ranks {
             let _pieces = rank.chars();
-            for mut p in _pieces {
+            for p in _pieces {
                 if p.is_digit(10) {
                     c += p.to_digit(10).unwrap() as u8 - 1;
                 } else if p.is_alphabetic() {
@@ -111,7 +151,7 @@ impl Board {
         }
 
         // Get turn
-        if fields[1].len() < 1 || fields.len() > 1 { return Err(FenError::InvalidFenTurn {turn: String::from(fields[1])}); }
+        if fields[1].len() < 1 || fields[1].len() > 1 { return Err(FenError::InvalidFenTurn {turn: String::from(fields[1])}); }
         let _turn = fields[1].chars().next().unwrap();
         if _turn != 'w' && _turn != 'b' { return Err(FenError::InvalidFenTurn {turn: String::from(fields[1])}); }
         self.set_turn( self.resolve_fen_turn(_turn) );
@@ -196,19 +236,19 @@ impl Board {
 
     fn resolve_fen_piece(&self, c: char, sq: u8) -> Piece {
         match c {
-            'p' => Piece::new(Piece::BPawn, Square::new(sq)),
-            'r' => Piece::new(Piece::BRook, Square::new(sq)),
-            'n' => Piece::new(Piece::BKnight, Square::new(sq)),
-            'b' => Piece::new(Piece::BBishop, Square::new(sq)),
-            'q' => Piece::new(Piece::BQueen, Square::new(sq)),
-            'k' => Piece::new(Piece::BKing, Square::new(sq)),
+            'p' => Piece::new(Piece::BPAWN, Square::new(sq)),
+            'r' => Piece::new(Piece::BROOK, Square::new(sq)),
+            'n' => Piece::new(Piece::BKNIGHT, Square::new(sq)),
+            'b' => Piece::new(Piece::BBISHOP, Square::new(sq)),
+            'q' => Piece::new(Piece::BQUEEN, Square::new(sq)),
+            'k' => Piece::new(Piece::BKING, Square::new(sq)),
 
-            'P' => Piece::new(Piece::WPawn, Square::new(sq)),
-            'R' => Piece::new(Piece::WRook, Square::new(sq)),
-            'N' => Piece::new(Piece::WKnight, Square::new(sq)),
-            'B' => Piece::new(Piece::WBishop, Square::new(sq)),
-            'Q' => Piece::new(Piece::WQueen, Square::new(sq)),
-            'K' => Piece::new(Piece::WKing, Square::new(sq)),
+            'P' => Piece::new(Piece::WPAWN, Square::new(sq)),
+            'R' => Piece::new(Piece::WROOK, Square::new(sq)),
+            'N' => Piece::new(Piece::WKNIGHT, Square::new(sq)),
+            'B' => Piece::new(Piece::WBISHOP, Square::new(sq)),
+            'Q' => Piece::new(Piece::WQUEEN, Square::new(sq)),
+            'K' => Piece::new(Piece::WKING, Square::new(sq)),
             _ => Piece::new(Piece::Empty, Square::new(sq))
         }
     }

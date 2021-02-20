@@ -8,4 +8,5 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
+array_tool = "1.0.3"
 wasm-bindgen = "0.2.70"
