@@ -1,7 +1,4 @@
 mod chess_core;
-
-use std::f64::consts::PI;
-
 use chess_core::game;
 
 #[derive(Debug)]

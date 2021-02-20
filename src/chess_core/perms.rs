@@ -1,8 +1,6 @@
 extern crate array_tool;
 
-use std::f64::consts::PI;
-
-use super::board::{self, Board};
+use super::board::Board;
 use super::piece::Piece;
 use super::square::Square;
 use super::utils::draw_ray;
@@ -12,30 +10,43 @@ pub struct Perms;
 
 impl Perms {
     pub fn is_can_move(&self, board :&Board, piece :&Piece, square: &Square) -> bool{
-        println!("default_squares..");
         if board.turn != piece.side {return false;}
-        println!("default_squares..11");
+        println!("Hi");
         if piece.square.get_square_int() == square.get_square_int() {return false;}
-        if self.is_piece_pinned(*board, piece) { return false; }
+        println!("Hi1");
+        if !self.is_king_in_check(board) { 
+            if self.is_piece_pinned(*board, piece) { return false; } 
+        } else {
+            let simulation = &self.simulate_mov_piece(board, piece, square);
+            if self.is_king_in_check(simulation) {
+                return false;
+            }
+        }
         let default_squares = self.get_piece_default_permitterd_squares(piece);
         let ray = draw_ray(piece.square.get_square_int(), square.get_square_int());
-        println!("default_squares..2-1 {:?}", default_squares);
-        println!("ray..2-2 {:?}", ray);
         let mut t = false;
         for r in ray {
             if !default_squares.contains(&r) && r!=piece.square.get_square_int() {
                 t = true;
             }
         }
-        
+        println!("Hi2");
         if t && piece.get_piece() != Piece::WKNIGHT && piece.get_piece() != Piece::BKNIGHT {return false;}
-        println!("testing..3 " );
+        println!("Hi3");
         if !self.is_can_capture(board, piece, square) {return false;}
-        println!("testing..4");
         true
     }
 
+    fn simulate_mov_piece(&self, board :&Board, piece :&Piece, square: &Square) -> Board {
+        let mut test_board = board.clone();
+        test_board.simulate_clear_piece_square(*piece);
+        test_board.simulate_set_piece_location(*piece, *square);
+        test_board
+    }
+
+    // TODO: FIX CHECKMATE AND KING CHECK
     pub fn is_king_in_check(&self, board :&Board) -> bool {
+        println!("test\n{:#?}", self.is_square_occupied_by_opponent(board.turn, board, &board.get_king().square));
         if self.is_square_occupied_by_opponent(board.turn, board, &board.get_king().square).len() != 0 {
             return true;
         }
@@ -46,7 +57,14 @@ impl Perms {
         // TODO: add errors for not king piece check
         if self.is_king_in_check(board) {
 
-            let occs =self.is_square_occupied_by_opponent(king.side, board, &king.square);
+            let mut _occs_ray =self.is_square_occupied_by_opponent(king.side, board, &king.square);
+            let mut occs:Vec<Piece> = Vec::new();
+
+            for &o in _occs_ray.iter() {
+                if o.get_piece() != Piece::Empty && o.get_piece() != king.get_piece() {
+                    occs.push(o);
+                }
+            }
 
             for sq in self.get_piece_default_permitterd_squares(&king) {
                 if self.is_can_capture(board, &king, &board.table[sq as usize].square) {
@@ -59,6 +77,15 @@ impl Perms {
                             return false;
                         }
                     }
+                    for block_square_empty_piece in _occs_ray.iter() {
+                        if block_square_empty_piece.get_piece() != king.get_piece() && block_square_empty_piece.get_piece() != occs[0].get_piece() {
+                            for def in self.is_square_occupied_by_opponent(!king.side, board, &block_square_empty_piece.square) {
+                                if def.get_piece() != Piece::Empty && def.get_piece() != king.get_piece() && def.get_piece() != occs[0].get_piece() && def.side == king.side {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
                     
                 }
             }
@@ -68,7 +95,7 @@ impl Perms {
         false
     }
 
-    pub fn is_stalemate(&self, mut board: &Board, king: Piece) -> bool {
+    pub fn is_stalemate(&self, board: &Board, king: Piece) -> bool {
         if !self.is_king_in_check(board) {
             let permitted_squares = self.get_piece_default_permitterd_squares(&king);
             for loc in permitted_squares {
@@ -78,9 +105,11 @@ impl Perms {
             }
             for &piece in board.table.iter() {
                 if piece.side == board.turn {
-                    if !self.is_piece_pinned(*board, &piece) && piece.get_piece() != Piece::WKING && piece.get_piece() != Piece::WKING {
+                    
+                    if !self.is_piece_pinned(*board, &piece) && piece.get_piece() != Piece::WKING && piece.get_piece() != Piece::WKING && piece.get_piece() != Piece::Empty {
                         let permitted_squares = self.get_piece_default_permitterd_squares(&piece);
                         for loc in permitted_squares {
+                            
                             if self.is_can_capture(board, &piece, &board.table[loc as usize].square) {
                                 return false;
                             }
@@ -98,8 +127,9 @@ impl Perms {
 
     pub fn is_piece_pinned(&self, board :Board, piece :&Piece) -> bool {
         if piece.get_piece() == Piece::WKING || piece.get_piece() == Piece::BKING {return false;}
-        let mut test_board = board;
+        let mut test_board = board.clone();
         test_board.table[piece.square.get_square_int() as usize] = Piece::new(Piece::Empty, piece.square);
+
         if self.is_king_in_check(&test_board) {
             return true;
         }
@@ -107,11 +137,9 @@ impl Perms {
     }
 
     pub fn is_can_capture(&self, board :&Board, capture_piece: &Piece, sqaure_to_go: &Square) -> bool {
-        println!("capt_test..");
-        if capture_piece.side == board.table[sqaure_to_go.get_square_int() as usize].side && board.table[sqaure_to_go.get_square_int() as usize].get_piece() != Piece::Empty { return false; }
+        if board.table[sqaure_to_go.get_square_int() as usize].get_piece() != Piece::Empty && capture_piece.side == board.table[sqaure_to_go.get_square_int() as usize].side { return false; }
         match capture_piece.piece {
             Piece::BPAWN => {
-                println!("here1sdq");
                 if board.table[sqaure_to_go.get_square_int() as usize].get_piece() != Piece::Empty {
                     if capture_piece.get_file_square() > 0 {
                         if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == 7 {
@@ -125,11 +153,9 @@ impl Perms {
                         }
                     }
                } else {
-                println!("here1");
                     let start_rank = 8..16;
                     if start_rank.contains(&capture_piece.square.get_square_int()) {
                         if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == 8 + 8 {
-                            println!("here");
                             if board.table[(capture_piece.square.get_square_int() as i8 + 8) as usize].get_piece() == Piece::Empty {
                                 if board.table[(capture_piece.square.get_square_int() as i8 + 16) as usize].get_piece() == Piece::Empty {
                                     return true;
@@ -194,32 +220,23 @@ impl Perms {
                 }
             },
             Piece::WPAWN => {
-                println!("capt_test..1");
                if board.table[sqaure_to_go.get_square_int() as usize].get_piece() != Piece::Empty {
-                println!("capt_test..2");
                 if capture_piece.get_file_square() > 0 {
-                    println!("capt_test..3");
                     if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == -9 {
-                        println!("capt_test..4");
                         return true;
                     }
                     
                     }
                     if capture_piece.get_file_square() < 7 {
-                        println!("capt_test..5");
                         if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == -7 {
-                            println!("capt_test..6");
                             return true;
                         }
                     }
                 } else {
-                    println!("capt_test..7");
                     let start_rank = 48..56;
                     if start_rank.contains(&capture_piece.square.get_square_int()) {
-                        println!("capt_test..8");
                         if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == -8 - 8 {
                             if board.table[(capture_piece.square.get_square_int() as i8 - 8) as usize].get_piece() == Piece::Empty {
-                                println!("capt_test..9");
                                 if board.table[(capture_piece.square.get_square_int() as i8 - 16) as usize].get_piece() == Piece::Empty {
                                     return true;
                                 }
@@ -256,19 +273,13 @@ impl Perms {
                 return true;
             },
             Piece::WROOK => {
-                println!("Testing_rook..");
-                println!("bedore..{:?} {}", sqaure_to_go.get_square_int(), capture_piece.square.get_square_int());
                 let v = draw_ray(capture_piece.square.get_square_int(), sqaure_to_go.get_square_int());
                 let permitted_squares = v.intersect(self.get_piece_default_permitterd_squares(capture_piece));
-                println!("qsdqd");
 
-                println!("after..{:?} {}", sqaure_to_go.get_square_int(), capture_piece.square.get_square_int());
                 for sq in permitted_squares {
                     
                     if sq != capture_piece.square.get_square_int() && sq != sqaure_to_go.get_square_int() {
-                        println!("Testing_rook..1");
                         if board.table[sq as usize].piece != Piece::Empty {
-                            println!("Testing_rook..2");
                             return false;
                         }
                     }
@@ -357,7 +368,7 @@ impl Perms {
             // check if white bishop/queen occupie square on diag
             let tl = if sq.get_square_int()/8 > sq.get_square_int()%8 { sq.get_square_int()%8 } else { sq.get_square_int()/8 };
             let sqtl = sq.get_square_int() - tl - (tl*8);
-            let br = if (8 - 1 - sq.get_square_int()/8) > (8 - 1 - sq.get_square_int()%8) { sq.get_square_int()%8 } else { sq.get_square_int()/8 };
+            let br = if (8 - 1 - sq.get_square_int()/8) > (8 - 1 - sq.get_square_int()%8) { 8 - 1 - sq.get_square_int()%8 } else { 8 - 1 - sq.get_square_int()/8 };
             let sqbr = sq.get_square_int() + br + (br*8);
             
             let vec = draw_ray(sqtl, sqbr);
@@ -378,9 +389,9 @@ impl Perms {
                 }
             }
             
-            let tr = if sq.get_square_int()/8 > (8 - 1 - sq.get_square_int()%8) { sq.get_square_int()%8 } else { sq.get_square_int()/8 };
+            let tr = if sq.get_square_int()/8 > (8 - 1 - sq.get_square_int()%8) { 8 - 1 - sq.get_square_int()%8 } else { sq.get_square_int()/8 };
             let sqtr = sq.get_square_int() + tr - (tr*8);
-            let bl = if (8 - 1 - sq.get_square_int()/8) > sq.get_square_int()%8 { sq.get_square_int()%8 } else { sq.get_square_int()/8 };
+            let bl = if (8 - 1 - sq.get_square_int()/8) > sq.get_square_int()%8 { sq.get_square_int()%8 } else { 8 - 1 - sq.get_square_int()/8 };
             let sqbl = sq.get_square_int() - bl + (bl*8);
             let vec = draw_ray(sqtr, sqbl);
 
@@ -827,7 +838,6 @@ impl Perms {
                 let sqtl = piece.square.get_square_int() - tl - (tl*8);
                 let br = if (8 - 1 - piece.get_rank_square()) > (8 - 1 - piece.get_file_square()) { 8 - 1 - piece.get_file_square() } else { 8 - 1 - piece.get_rank_square() };
                 let sqbr = piece.square.get_square_int() + br + (br*8);
-                println!("bishop.. {:?}, {:?}", br, sqbr);
                 let mut vec = draw_ray(sqtl, sqbr);
 
                 let tr = if piece.get_rank_square() > (8 - 1 - piece.get_file_square()) { 8 - 1 - piece.get_file_square() } else { piece.get_rank_square() };

@@ -3,7 +3,6 @@ pub fn draw_ray(mut sq1:u8, mut sq2: u8) -> Vec<u8> {
     let _sq1 = if sq1>sq2 {sq2} else {sq1};
     sq2 = if sq2>sq1 {sq2} else {sq1};
     sq1 = _sq1;
-    println!("sqs : {}, {}", sq1, sq2);
     let mut vec: Vec<u8> = Vec::new();
     let mut x0 = (sq1%8) as f32;
     let mut y0 = (sq1/8) as f32;

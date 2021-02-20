@@ -20,10 +20,10 @@ pub struct Game {
 
 }
 
-const SQUARES_CHARS: &str = "ABCDEFGH";
+// const SQUARES_CHARS: &str = "ABCDEFGH";
 
 
-struct CLI;
+pub struct CLI;
 
 impl CLI {
 
@@ -113,6 +113,7 @@ impl Game {
             println!("Enter command ex 'F2 F4'");
             let cmd = CLI.get_command();
             println!("You've enter: {:?}", cmd);
+            println!("");
             if self.board.move_piece(self.board.table[cmd.0 as usize], Square::new(cmd.1), 0) {
                 self.board.switch_turn();
             };
@@ -120,6 +121,7 @@ impl Game {
                 self.winner = if self.board.turn {Winner::WHITE} else {Winner::BLACK};
                 break;
             }
+            self.board.print_debug_board_table_squares();
             if self.board.is_stale_mate() {
                 self.winner = Winner::STALEMATE;
                 break;
@@ -129,14 +131,21 @@ impl Game {
                 break;
             }
             if self.board.is_incheck() {
-                println!("Check!");
+                println!("{} King in Check!", if self.board.turn {"Black"} else {"White"});
             }
-
         }
         self.winner
     }
 
     pub fn test_play(&mut self) {
-        self._play();
+        let state = self._play();
+        match state {
+            Winner::WHITE => println!("White won the game!"),
+            Winner::BLACK => println!("Black won the game!"),
+            Winner::DRAW => println!("It a Draw!"),
+            Winner::STALEMATE => println!("It was a stalemate!"),
+            _ => println!("something went wrong")
+
+        }
     }
 }

@@ -1,7 +1,7 @@
 
 
-use super::{perms::Perms, piece::Piece, square::{self, Square}};
-use std::{fmt, u8};
+use super::{perms::Perms, piece::Piece, square::{Square}};
+use std::{f64::consts::PI, fmt, u8};
 
 const FEN_START_BOARD: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -25,8 +25,8 @@ impl fmt::Debug for FenError {
 
 fn is_digit(s: &str) -> bool{
     match String::from(s).parse::<u32>() {
-        Ok(ok) => true,
-        Err(e) => false
+        Ok(_) => true,
+        Err(_) => false
     }
 }
 
@@ -44,17 +44,30 @@ pub struct Board {
     last_white_square: u8
 }
 
+
 impl Board {
     pub fn new() -> Self {
         let p: Piece = Piece::new(Piece::Empty, Square::NO_SQUARE);
         Self { table: [p ; 64], castling_ability: 0b0000, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false, bitboard: [0b1111; 64], last_repeated: 0, last_black_square: 64, last_white_square: 64 }
     }
-    pub fn print_debug_board_table(&self) {
+    /*pub fn print_debug_board_table(&self) {
         println!("{:?}", self.table);
     }
 
     pub fn print_debug_bitboard(&self) {
         println!("{:?}", self.bitboard);
+    }*/
+
+    pub fn print_debug_board_table_squares(&self) {
+        let mut c = 0;
+        for i in self.table.iter() {
+            print!("{}, ", i.square.get_square_int());
+            if c%8 == 0 {
+                println!();
+            }
+            c += 1;
+        }
+        println!("{:?}", self.table);
     }
 
     pub fn is_checkmate(&self) -> bool {
@@ -160,6 +173,8 @@ impl Board {
             if piece.get_piece() != Piece::WPAWN && piece.get_piece() != Piece::BPAWN {
                 if self.table[square.get_square_int() as usize].get_piece() == Piece::Empty {
                     self.increment_half_move();
+                } else {
+                    self.reset_half_moves()
                 }
                 if self.turn {
                     if self.last_black_square == square.get_square_int() {
@@ -179,7 +194,8 @@ impl Board {
     
                 }
             } else {
-                if (square.get_square_int()/8 == 7 || square.get_square_int()/8 == 0) {
+                self.reset_half_moves();
+                if square.get_square_int()/8 == 7 || square.get_square_int()/8 == 0 {
                     is_promote = true;
                 }
             }
@@ -190,6 +206,14 @@ impl Board {
             return true;
         }
         false
+    }
+
+    pub fn simulate_clear_piece_square(&mut self, piece:Piece) {
+        self.clear_piece_square(piece);
+    }
+    
+    pub fn simulate_set_piece_location(&mut self, piece: Piece, square: Square) {
+        self.set_piece_location(piece, square, false, 0);
     }
 
     fn set_piece_location(&mut self, mut piece: Piece, square: Square, is_promote: bool, promote: u8) {
@@ -206,6 +230,7 @@ impl Board {
         self.table[square.0 as usize] = piece;
         self.bitboard[square.0 as usize] = piece.piece;
         piece.set_square(square);
+        self.increment_move();
     }
     fn clear_piece_square(&mut self, piece: Piece) {
         self.set_piece_location(Piece::new(Piece::Empty, piece.square), piece.square, false, 0);
@@ -268,6 +293,9 @@ impl Board {
             let _pieces = rank.chars();
             for p in _pieces {
                 if p.is_digit(10) {
+                    for i in 0..(p.to_digit(10).unwrap()) {
+                        self.set_piece_location(Piece::new(Piece::Empty, Square::new(c + i as u8)), Square::new(c + i as u8), false, 0);
+                    }
                     c += p.to_digit(10).unwrap() as u8 - 1;
                 } else if p.is_alphabetic() {
                      let _piece = self.resolve_fen_piece(p, c);
