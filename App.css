@@ -49,7 +49,7 @@
 }
 
 #board-blank, .fade-in-overlay {
-  background-image: url(https://images.chesscomfiles.com/chess-themes/boards/green/150.png);
+  background-image: url(./themes/default/defaultBoard.png);
 }
 
 .coordinates {
@@ -59,51 +59,51 @@
 
 
 #board-blank .piece.p0 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png');
+	background-image: url('./themes/default//wp.png');
 }
 
 #board-blank .piece.p1 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png');
+	background-image: url('./themes/default//wn.png');
 }
 
 #board-blank .piece.p2 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png');
+	background-image: url('./themes/default//wb.png');
 }
 
 #board-blank .piece.p3 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png');
+	background-image: url('./themes/default//wr.png');
 }
 
 #board-blank .piece.p4 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png');
+	background-image: url('./themes/default//wq.png');
 }
 
 #board-blank .piece.p5 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png');
+	background-image: url('./themes/default//wk.png');
 }
 
 #board-blank .piece.p8 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png');
+	background-image: url('./themes/default//bp.png');
 }
 
 #board-blank .piece.p9 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png');
+	background-image: url('./themes/default//bn.png');
 }
 
 #board-blank .piece.p10 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png');
+	background-image: url('./themes/default//bb.png');
 }
 
 #board-blank .piece.p11 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png');
+	background-image: url('./themes/default//br.png');
 }
 
 #board-blank .piece.p12 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png');
+	background-image: url('./themes/default//bq.png');
 }
 
 #board-blank .piece.p13 {
-	background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png');
+	background-image: url('./themes/default//bk.png');
 }
 
 .piece.dragging {

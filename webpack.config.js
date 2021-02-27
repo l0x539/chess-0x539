@@ -23,16 +23,6 @@ module.exports = (env, args) => {
                 {
                     test: /\.css$/i,
                     use: ["style-loader", "css-loader"],
-                },  
-                {
-                    test: /\.(png|jpg|gif)$/i,
-                    use: {
-                        loader: "url-loader",
-                        options: {
-                            limit: 8192,
-                            name: "static/media/[name].[hash:8].[ext]"
-                        }
-                    }
                 },
                 {
                     test: /\.svg$/,
