@@ -1,3 +1,19 @@
+# Chess 0x539
+
+## A chess app using rust webassembly and react js
+
+### Rust
+
+TBA
+
+### WASM
+
+TBA
+
+### ReactJS
+
+TBA
+
 # Running the project
 
 ## Clone this repository:
