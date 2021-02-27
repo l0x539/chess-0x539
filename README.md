@@ -1,4 +1,39 @@
-# Running a rust Webassembly Website
+# Running the project
+
+## Clone this repository:
+
+```sh
+$ git clone https://github.com/l0x539/chess-0x539
+```
+
+## Installing npm package:
+
+* Navigate to the repository folder and run following command:
+
+```sh 
+$ npm install
+```
+
+## Installing Rust packages:
+* Navigate to the repository folder and run following commands:
+
+- you'll need [wasm-bindgen-cli](https://rustwasm.github.io/wasm-bindgen/reference/cli.html) using following command:
+
+```sh
+$ rustup target add wasm32-unknow-unknown
+$ cargo +nightly install wasm-bindgen-cli
+$ cargo build
+```
+
+## Run the app:
+
+Once you setup the recommended packages, you can run the following command to see the test:
+
+```sh
+$ yarn dev
+```
+
+# Running a rust Webassembly Website (not required for this repo)
 
 ## Steps to compile
 
