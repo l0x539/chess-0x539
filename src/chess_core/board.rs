@@ -119,6 +119,7 @@ impl Board {
             if (piece.get_piece() == Piece::WPAWN || piece.get_piece() == Piece::BPAWN) && self.half_move_count < 50 {
                 return false;
             }
+            
             if self.count_values_black() > 3 && self.count_values_white() > 3 {
                 return false;
             }

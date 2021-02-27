@@ -92,7 +92,6 @@ impl Perms {
                 }
                 if occs.len() == 1 {
                     let defenders = self.is_square_occupied_by_opponent(!king.side, board, &occs[0].square);
-                    super::super::log(format!("{:?}", defenders).as_str());
                     for defender in defenders {
                         if !self.is_piece_pinned(*board, &defender) && defender.get_piece() != king.get_piece() {
                             return false;

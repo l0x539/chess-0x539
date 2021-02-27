@@ -20,7 +20,6 @@ class Challenge extends Component {
 
     componentDidMount() {
         GameWasmClient.then((GameWasmClient) => {
-            console.log(GameWasmClient)
             this.setState({ GameWasmEngine: GameWasmClient })
             this.setState({ board: GameWasmClient.get_board() })
             this.setState({ status: this.state.status })
@@ -43,7 +42,6 @@ class Challenge extends Component {
     }
 
     render () {
-        console.log(this.state.status[0]? "Black": "White");
         return <div>
                 <div  style={{ margin: "0 64px"}}>
                     {(() => {
@@ -53,7 +51,7 @@ class Challenge extends Component {
                                         { this.state.status[1]? <p>You're in check</p>: ""}
                                         { this.state.status[2] === 1 ? <p>Checkmate!</p>: ""}
                                         { this.state.status[2] === 2 ? <p>Stale Mate!</p>: ""}
-                                        { this.state.status[2] === 2 ? <p>Draw!</p>: ""}
+                                        { this.state.status[2] === 3 ? <p>Draw!</p>: ""}
                                     </Fragment>
                             }
                         })()

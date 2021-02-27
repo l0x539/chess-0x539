@@ -6,7 +6,6 @@ class Piece extends Component {
     constructor(props) {
         super(props)
         const { square, board_width, board_height } = props;
-        console.log(square, board_width, board_height);
         this.state = {
             deltaPosition: {
                 x: 0,
@@ -43,7 +42,6 @@ class Piece extends Component {
         const X = ui.x + (board_width/16);
         const Y = ui.y + (board_width/16);
         const square_to_go = Math.floor(X / (board_width/8)) + 8 * Math.floor(Y / (board_height/8));
-        console.log(square, square_to_go, 0);
         this.props.updateBoard(square, square_to_go, 0);
     }
 
