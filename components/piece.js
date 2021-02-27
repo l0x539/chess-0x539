@@ -39,9 +39,12 @@ class Piece extends Component {
         this.setState({isDragging: false})
         this.setState({
             piece_position: {x: Math.floor(square%8)*(board_width/8), y: Math.floor(square/8)*(board_height/8)}
-        })
-        const go_to_square = ui.x
-        console.log(ui.x, ui.y);
+        });
+        const X = ui.x + (board_width/16);
+        const Y = ui.y + (board_width/16);
+        const square_to_go = Math.floor(X / (board_width/8)) + 8 * Math.floor(Y / (board_height/8));
+        console.log(square, square_to_go, 0);
+        this.props.updateBoard(square, square_to_go, 0);
     }
 
 
