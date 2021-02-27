@@ -48,6 +48,10 @@ Once you setup the recommended packages, you can run the following command to se
 ```sh
 $ yarn dev
 ```
+or
+```sh
+$ npm run dev
+```
 
 # Running a rust Webassembly Website (not required for this repo)
 
