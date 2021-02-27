@@ -1,7 +1,7 @@
 
 
 use super::{perms::Perms, piece::Piece, square::{Square}};
-use std::{f64::consts::PI, fmt, u8};
+use std::{fmt, u8};
 
 const FEN_START_BOARD: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 

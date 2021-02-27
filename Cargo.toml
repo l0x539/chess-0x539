@@ -10,3 +10,26 @@ crate-type = ["cdylib"]
 [dependencies]
 array_tool = "1.0.3"
 wasm-bindgen = "0.2.70"
+console_error_panic_hook = "0.1.6"
+js-sys = "0.3.47"
+lazy_static = "1.4.0"
+nalgebra = "0.24.1"
+
+[dependencies.web-sys]
+version = "^0.3.4"
+features = [
+    'Document',
+    'Element',
+    'EventTarget',
+    'HtmlCanvasElement',
+    'HtmlImageElement',
+    'MouseEvent',
+    'WebGlBuffer',
+    'WebGlProgram',
+    'WebGlRenderingContext',
+    'CanvasRenderingContext2d',
+    'WebGlShader',
+    'ImageData',
+    'WebGlUniformLocation',
+    'Window',
+]

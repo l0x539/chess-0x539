@@ -1,43 +1,73 @@
 extern crate wasm_bindgen;
 
+use chess_core::{board::Board, square::Square};
 use wasm_bindgen::prelude::*;
+use js_sys::Array;
+use js_sys::Boolean;
+
+#[macro_use]
+extern crate lazy_static;
+
+mod components;
+mod drawer;
+mod app_state;
+mod common_funcs;
+mod gl_setup;
+mod programs;
+mod shaders;
+mod chess_core;
 
 #[wasm_bindgen]
 extern "C" {
     fn alert(s: &str);
-
-    type HTMLDocument;
-    type Element;
-
-    static document: HTMLDocument;
-
-    #[wasm_bindgen(method)]
-    fn createElement(this:&HTMLDocument, tagName: &str) -> Element;
-
-    #[wasm_bindgen(method, getter)]
-    fn body (this: &HTMLDocument) -> Element;
-
-    #[wasm_bindgen(method, js_name = appendChild)]
-    fn append(this: &Element, item: Element);
-
-    #[wasm_bindgen(method, setter = innerHTML)]
-    fn set_inner(this: &Element, html: &str);
-
+    
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
 }
 
 #[wasm_bindgen]
-pub fn run_alert(item: &str) {
-    alert(&format!("This is WASM and {}", item));
+pub struct GameWasmClient {
+    board: Board
 }
 
 #[wasm_bindgen]
-pub fn create_page() {
-    let div = document.createElement("div");
-    let p = document.createElement("p");
+impl GameWasmClient {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        let mut board = Board::new();
+        board.initialize_classic_start_board();
+        Self {
+            board: board
+        }
+    }
 
-    p.set_inner("Hello From WASM");
-    div.append(p);
+    pub fn update_board(&mut self, square: u8, square_to: u8, promote: u8) -> Array {
+        let mut status = [0, 0, 0];
+        let piece_move = self.board.move_piece(self.board.table[square as usize], Square::new(square_to), promote);
+        if piece_move {
+            self.board.switch_turn();
+            status[0] = if piece_move {1} else {0};
+        };
+        if self.board.is_incheck() {
+            status[1] = 1;
+        };
+        if self.board.is_checkmate() {
+            status[2] = 1;
+        };
+        self.board.print_debug_board_table_squares();
+        if self.board.is_stale_mate() {
+            status[2] = 2;
+        };
+        if self.board.is_draw() {
+            status[2] = 3;
+        };
+        let status: Vec<u8> = status.to_vec();
+        status.into_iter().map(JsValue::from).collect()
 
-    document.body().append(div);
+    }
 
+    pub fn get_board(&mut self) -> Array {
+        let board: Vec<u8> = self.board.bitboard.to_vec();
+        board.into_iter().map(JsValue::from).collect()
+    }
 }

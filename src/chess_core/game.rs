@@ -1,4 +1,4 @@
-use super::board::{self, Board};
+use super::board::{Board};
 use super::square::Square;
 use std::io::{self, BufRead};
 
