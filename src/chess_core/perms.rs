@@ -75,7 +75,6 @@ impl Perms {
 
             let mut _occs_ray =self.is_square_occupied_by_opponent(king.side, board, &king.square);
             let mut occs:Vec<Piece> = Vec::new();
-            println!("occs_ray {:?}", _occs_ray);
 
             for &o in _occs_ray.iter() {
                 if o.get_piece() != Piece::Empty && o.get_piece() != king.get_piece() {
@@ -89,14 +88,13 @@ impl Perms {
 
             for sq in self.get_piece_default_permitterd_squares(&king) {
                 if self.is_can_capture(board, &king, &board.table[sq as usize].square) {
-                    println!("off here");
                     return false;
                 }
                 if occs.len() == 1 {
                     let defenders = self.is_square_occupied_by_opponent(!king.side, board, &occs[0].square);
+                    super::super::log(format!("{:?}", defenders).as_str());
                     for defender in defenders {
-                        if !self.is_piece_pinned(*board, &defender) {
-                            println!("or here");
+                        if !self.is_piece_pinned(*board, &defender) && defender.get_piece() != king.get_piece() {
                             return false;
                         }
                     }
@@ -108,7 +106,6 @@ impl Perms {
                                 println!("all_def: {:?}\nto: {:?}", all_def, board.table[block_square_empty_piece as usize].square);
                                 for def in all_def {
                                     if def.get_piece() != king.get_piece() && (((def.get_piece() != Piece::WPAWN) || (def.get_piece() != Piece::BPAWN)) && def.get_file_square() == block_square_empty_piece%8) {
-                                        println!("maybe here {:?}", def);
                                         return false;
                                     }
                                 }
@@ -222,8 +219,11 @@ impl Perms {
                 return true;
             },
             Piece::BROOK => {
-                let permitted_squares = draw_ray(capture_piece.square.get_square_int(), sqaure_to_go.get_square_int()).intersect(self.get_piece_default_permitterd_squares(capture_piece));
+                let v = draw_ray(capture_piece.square.get_square_int(), sqaure_to_go.get_square_int());
+                let permitted_squares = v.intersect(self.get_piece_default_permitterd_squares(capture_piece));
+
                 for sq in permitted_squares {
+                    
                     if sq != capture_piece.square.get_square_int() && sq != sqaure_to_go.get_square_int() {
                         if board.table[sq as usize].piece != Piece::Empty {
                             return false;
@@ -329,9 +329,9 @@ impl Perms {
             },
             Piece::WKING => {
                 let permitted_squares = self.get_piece_default_permitterd_squares(capture_piece);
-                if permitted_squares.contains(&sqaure_to_go.get_square_int()) && (self.is_square_occupied_by_opponent(false, board, &sqaure_to_go).len() == 0){
+                if permitted_squares.contains(&sqaure_to_go.get_square_int()) && self.is_square_occupied_by_opponent(false, board, &sqaure_to_go).len()==0{
                     return true;
-                }                
+                }              
             },
             _ => { return false }
         }
@@ -684,7 +684,7 @@ impl Perms {
             vec.sort();
             vec.dedup();
             for square in vec {
-                if board.table[square as usize].get_piece() == Piece::WKING {
+                if board.table[square as usize].get_piece() == Piece::BKING {
                     occupiers.push(board.table[square as usize]);
                 }
             }
@@ -763,7 +763,7 @@ impl Perms {
                 let mut vec = draw_ray(sqt, sqb);
 
                 let sql = piece.get_rank_square() * 8;
-                let sqr = piece.get_rank_square()*8 + 8;
+                let sqr = piece.get_rank_square()*8 + 7;
 
                 vec.extend(draw_ray(sql, sqr));
 

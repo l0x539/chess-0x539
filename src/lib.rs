@@ -42,11 +42,11 @@ impl GameWasmClient {
     }
 
     pub fn update_board(&mut self, square: u8, square_to: u8, promote: u8) -> Array {
-        let mut status = [0, 0, 0];
+        let mut status = [self.board.turn as u8, 0, 0];
         let piece_move = self.board.move_piece(self.board.table[square as usize], Square::new(square_to), promote);
         if piece_move {
             self.board.switch_turn();
-            status[0] = if piece_move {1} else {0};
+            status[0] = if self.board.turn {0} else {1};
         };
         if self.board.is_incheck() {
             status[1] = 1;
