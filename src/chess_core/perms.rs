@@ -47,7 +47,7 @@ impl Perms {
     pub fn is_can_castle (&self, board :&Board, king: Piece, side: bool /* false queen, true king side */) -> bool {
         let king = 4 + if board.turn { 0 } else { 56 };
         let rook = if side {7} else {0} + if board.turn { 0 } else { 56 };
-        if (board.table[king as usize].get_piece() != (Piece::BKING | (if board.turn {0} else {0b1000}))) || (board.table[rook as usize].get_piece() != (Piece::BROOK | (if board.turn {0} else {0b1000}))) {
+        if (board.table[king as usize].get_piece() != (Piece::WKING | (if board.turn {0b1000} else {0}))) || (board.table[rook as usize].get_piece() != (Piece::WROOK | (if board.turn {0b1000} else {0}))) {
             return false;
         }
         let vec = draw_ray(king, rook);

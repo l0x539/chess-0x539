@@ -57,6 +57,9 @@
   position: absolute;
 }
 
+.piece.show {
+  transition: transform 0.3s ease;
+}
 
 #board-blank .piece.p0 {
 	background-image: url('./themes/default//wp.png');
