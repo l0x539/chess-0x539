@@ -1,5 +1,7 @@
 # Chess 0x539
 
+WebAssembly Chess Engine made with rust, [Demo](http://chess.0x539.co/)
+
 ## A chess app using rust webassembly and react js
 
 ### Rust
