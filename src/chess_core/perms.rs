@@ -28,10 +28,8 @@ impl Perms {
                 t = true;
             }
         }
-        super::super::log("here2");
 
         if t && piece.get_piece() != Piece::WKNIGHT && piece.get_piece() != Piece::BKNIGHT {return false;}
-        super::super::log("here3");
 
         if !self.is_can_capture(board, piece, square) {return false;}
         true
@@ -82,7 +80,6 @@ impl Perms {
                 }
             }
 
-            println!("occs {:?}", occs);
 
             
 
@@ -102,8 +99,9 @@ impl Perms {
                         for &block_square_empty_piece in new_ray_king_checker.iter() {
                             if block_square_empty_piece != king.square.get_square_int() && block_square_empty_piece != occs[0].square.get_square_int() {
                                 let all_def = self.is_square_occupied_by_opponent(!king.side, board, &board.table[block_square_empty_piece as usize].square);
-                                println!("all_def: {:?}\nto: {:?}", all_def, board.table[block_square_empty_piece as usize].square);
+
                                 for def in all_def {
+
                                     if def.get_piece() != king.get_piece() && (((def.get_piece() != Piece::WPAWN) || (def.get_piece() != Piece::BPAWN)) && def.get_file_square() == block_square_empty_piece%8) {
                                         return false;
                                     }
@@ -416,7 +414,7 @@ impl Perms {
                         let new_vec = draw_ray(sq.get_square_int(), occ);
                         let mut t = false;
                         for _square in new_vec {
-                            if _square != sq.get_square_int() && _square != occ && board.table[_square as usize].piece != Piece::Empty {
+                            if _square != sq.get_square_int() && _square != occ && board.table[_square as usize].piece != Piece::Empty && board.table[_square as usize].piece != Piece::BKING {
 
                                 t = true;
                             }
@@ -439,7 +437,7 @@ impl Perms {
                         let new_vec = draw_ray(sq.get_square_int(), square);
                         let mut t = false;
                         for _square in new_vec {
-                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty {
+                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty && board.table[_square as usize].piece != Piece::BKING  {
                                 t = true;
                             }
                         }
@@ -460,7 +458,7 @@ impl Perms {
                         let new_vec = draw_ray(sq.get_square_int(), square);
                         let mut t = false;
                         for _square in new_vec {
-                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty {
+                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty && board.table[_square as usize].piece != Piece::BKING {
                                 t = true;
                             }
                         }
@@ -479,7 +477,7 @@ impl Perms {
                         let new_vec = draw_ray(sq.get_square_int(), square);
                         let mut t = false;
                         for _square in new_vec {
-                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty {
+                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty && board.table[_square as usize].piece != Piece::BKING {
                                 t = true;
                             }
                         }
@@ -589,7 +587,7 @@ impl Perms {
                         let new_vec = draw_ray(sq.get_square_int(), square);
                         let mut t = false;
                         for _square in new_vec {
-                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty {
+                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty && board.table[_square as usize].piece != Piece::WKING {
                                 t = true;
                             }
                         }
@@ -610,7 +608,7 @@ impl Perms {
                         let new_vec = draw_ray(sq.get_square_int(), square);
                         let mut t = false;
                         for _square in new_vec {
-                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty {
+                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty && board.table[_square as usize].piece != Piece::WKING {
                                 t = true;
                             }
                         }
@@ -631,7 +629,7 @@ impl Perms {
                         let new_vec = draw_ray(sq.get_square_int(), square);
                         let mut t = false;
                         for _square in new_vec {
-                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty {
+                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty && board.table[_square as usize].piece != Piece::WKING {
                                 t = true;
                             }
                         }
@@ -652,7 +650,7 @@ impl Perms {
                         let new_vec = draw_ray(sq.get_square_int(), square);
                         let mut t = false;
                         for _square in new_vec {
-                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty {
+                            if _square != sq.get_square_int() && _square != square && board.table[_square as usize].piece != Piece::Empty && board.table[_square as usize].piece != Piece::WKING {
                                 t = true;
                             }
                         }

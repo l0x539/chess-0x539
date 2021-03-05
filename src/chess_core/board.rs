@@ -3,7 +3,8 @@
 use super::{perms::Perms, piece::Piece, square::{Square}};
 use std::{fmt, u8};
 
-const FEN_START_BOARD: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+// const FEN_START_BOARD: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const FEN_START_BOARD: &str = "3k4/8/8/8/8/8/2R5/3KN3 w - - 0 30";
 
 pub enum FenError {
     InvalidFenFormat {s: String},
@@ -110,9 +111,11 @@ impl Board {
 
     pub fn is_draw(&self) -> bool {
         if self.half_move_count > 50 {
+
             return true;
         }
         if self.last_repeated > 5 {
+
             return true;
         }
         for piece in self.pieces_left() {
@@ -120,11 +123,10 @@ impl Board {
                 return false;
             }
             
-            if self.count_values_black() > 3 && self.count_values_white() > 3 {
-                return false;
-            }
         }
-
+        if self.count_values_black() > 3 || self.count_values_white() > 3 {
+            return false;
+        }
         true
     }
 
@@ -187,7 +189,6 @@ impl Board {
     }
 
     pub fn move_piece(&mut self, piece: Piece, square: Square, promote: u8) -> bool {
-        super::super::log("here0");
 
         if piece.get_piece() == (Piece::WKING | if self.turn { 0b1000 } else {0}) && piece.square.get_square_int() == (Square::E8.get_square_int() + if self.turn {0} else {56}) {
             if square.get_square_int() == Square::C8.get_square_int() + if self.turn {0} else {56} {
@@ -227,7 +228,6 @@ impl Board {
             }
         }
         if Perms.is_can_move(&self, &piece, &square) {
-            super::super::log("here1");
             self.set_enpassant_square(Square::NO_SQUARE);
 
             let mut is_promote = false;
