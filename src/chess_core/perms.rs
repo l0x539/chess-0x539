@@ -11,9 +11,7 @@ pub struct Perms;
 impl Perms {
     pub fn is_can_move(&self, board :&Board, piece :&Piece, square: &Square) -> bool{
         if board.turn != piece.side {return false;}
-        println!("Hi");
         if piece.square.get_square_int() == square.get_square_int() {return false;}
-        println!("Hi1");
         if !self.is_king_in_check(board) { 
             if self.is_king_in_check(&self.simulate_mov_piece(board, piece, square)) { return false; } 
         } else {
@@ -30,9 +28,11 @@ impl Perms {
                 t = true;
             }
         }
-        println!("Hi2");
+        super::super::log("here2");
+
         if t && piece.get_piece() != Piece::WKNIGHT && piece.get_piece() != Piece::BKNIGHT {return false;}
-        println!("Hi3");
+        super::super::log("here3");
+
         if !self.is_can_capture(board, piece, square) {return false;}
         true
     }
@@ -190,10 +190,12 @@ impl Perms {
                         } else {
                             if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == 8 {
                                 return true;
-                            }
+                            } 
                         }
                     } else {
                         if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == 8 {
+                            return true;
+                        } else if (sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == 7 || sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == 9) && (board.en_passent_square.get_square_int() == sqaure_to_go.get_square_int()) {
                             return true;
                         }
                     }
@@ -249,6 +251,7 @@ impl Perms {
                 }
             },
             Piece::WPAWN => {
+
                if board.table[sqaure_to_go.get_square_int() as usize].get_piece() != Piece::Empty {
                 if capture_piece.get_file_square() > 0 {
                     if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == -9 {
@@ -276,7 +279,10 @@ impl Perms {
                             }
                         }
                     } else {
+                        
                         if sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == -8 {
+                            return true;
+                        } else if (sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == -7 || sqaure_to_go.get_square_int() as i8 - capture_piece.square.get_square_int() as i8 == -9) && (board.en_passent_square.get_square_int() == sqaure_to_go.get_square_int()) {
                             return true;
                         }
                     }

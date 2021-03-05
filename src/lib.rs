@@ -53,12 +53,9 @@ impl GameWasmClient {
         };
         if self.board.is_checkmate() {
             status[2] = 1;
-        };
-        self.board.print_debug_board_table_squares();
-        if self.board.is_stale_mate() {
+        } else if self.board.is_stale_mate() {
             status[2] = 2;
-        };
-        if self.board.is_draw() {
+        } else if self.board.is_draw() {
             status[2] = 3;
         };
         let status: Vec<u8> = status.to_vec();

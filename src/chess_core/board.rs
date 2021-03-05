@@ -187,6 +187,8 @@ impl Board {
     }
 
     pub fn move_piece(&mut self, piece: Piece, square: Square, promote: u8) -> bool {
+        super::super::log("here0");
+
         if piece.get_piece() == (Piece::WKING | if self.turn { 0b1000 } else {0}) && piece.square.get_square_int() == (Square::E8.get_square_int() + if self.turn {0} else {56}) {
             if square.get_square_int() == Square::C8.get_square_int() + if self.turn {0} else {56} {
                 if 1 << if self.turn {2} else {0} & self.castling_ability != 0 {
@@ -225,6 +227,9 @@ impl Board {
             }
         }
         if Perms.is_can_move(&self, &piece, &square) {
+            super::super::log("here1");
+            self.set_enpassant_square(Square::NO_SQUARE);
+
             let mut is_promote = false;
             if piece.get_piece() != Piece::WPAWN && piece.get_piece() != Piece::BPAWN {
                 if self.table[square.get_square_int() as usize].get_piece() == Piece::Empty {
@@ -253,6 +258,14 @@ impl Board {
                 self.reset_half_moves();
                 if square.get_square_int()/8 == 7 || square.get_square_int()/8 == 0 {
                     is_promote = true;
+                } else if piece.get_piece() == Piece::WPAWN && (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == -8 - 8) {
+                    self.set_enpassant_square(self.table[(square.get_square_int() + 8) as usize].square);
+                } else if piece.get_piece() == Piece::BPAWN && (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == 8 + 8) {
+                    self.set_enpassant_square(self.table[(square.get_square_int() - 8) as usize].square)
+                } else if piece.get_piece() == Piece::WPAWN && ((square.get_square_int() as i8 - piece.square.get_square_int() as i8 == -9) || (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == -7)) {
+                    self.clear_piece_square(self.table[(square.get_square_int() + 8) as usize]);
+                } else if piece.get_piece() == Piece::BPAWN && ((square.get_square_int() as i8 - piece.square.get_square_int() as i8 == 9) || (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == 7)) {
+                    self.clear_piece_square(self.table[(square.get_square_int() - 8) as usize]);
                 }
             }
 
@@ -310,7 +323,7 @@ impl Board {
     fn set_castling_ability(&mut self, castling_ability: u8) {
         self.castling_ability = castling_ability;
     }
-    fn set_enpassant_square(&mut self, square: Square) {
+    pub fn set_enpassant_square(&mut self, square: Square) {
         self.en_passent_square = square;
     }
     fn set_half_move_count(&mut self, half_move_count: u32) {
