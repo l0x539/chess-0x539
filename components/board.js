@@ -1,4 +1,3 @@
-
 import { Component } from 'react';
 import Piece from './piece'
 import BoardHolder from "./boardholder";

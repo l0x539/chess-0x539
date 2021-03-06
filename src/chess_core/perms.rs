@@ -696,8 +696,10 @@ impl Perms {
     }
 
     fn get_piece_default_permitterd_squares(&self, piece: &Piece) -> Vec<u8> {
-        assert!(piece.piece != Piece::Empty);
         let mut vec = Vec::new();
+        if piece.get_piece() == Piece::Empty {
+            return vec;
+        }
         match piece.piece {
             Piece::BPAWN => {
                 let start_rank = 8..16;
@@ -828,6 +830,7 @@ impl Perms {
                 vec
             },
             Piece::WPAWN => {
+                
                 let start_rank = 48..56;
                 if start_rank.contains(&piece.square.get_square_int()) {
                     vec.push(piece.square.get_square_int() - 8 - 8);

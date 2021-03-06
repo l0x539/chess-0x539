@@ -42,7 +42,11 @@ class Piece extends Component {
         const X = ui.x + (board_width/16);
         const Y = ui.y + (board_width/16);
         const square_to_go = Math.floor(X / (board_width/8)) + 8 * Math.floor(Y / (board_height/8));
-        this.props.updateBoard(square, square_to_go, 0);
+
+        if (this.props.side === "black") {
+            const _arr = [...Array(64).keys()].reverse()
+            this.props.updateBoard(_arr[square], _arr[square_to_go], 0)
+        } else this.props.updateBoard(square, square_to_go, 0);
     }
 
 

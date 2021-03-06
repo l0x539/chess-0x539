@@ -49,7 +49,7 @@
 }
 
 #board-blank, .fade-in-overlay {
-  background-image: url(./themes/default/defaultBoard.png);
+  background-image: url("./themes/default/defaultBoard.png");
 }
 
 .coordinates {

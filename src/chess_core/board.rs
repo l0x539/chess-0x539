@@ -1,10 +1,10 @@
 
 
 use super::{perms::Perms, piece::Piece, square::{Square}};
-use std::{fmt, u8};
+use std::{fmt, ops::Add, u8};
 
-// const FEN_START_BOARD: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const FEN_START_BOARD: &str = "3k4/8/8/8/8/8/2R5/3KN3 w - - 0 30";
+const FEN_START_BOARD: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+// const FEN_START_BOARD: &str = "3k4/8/8/8/8/8/2R5/3KN3 w - - 0 30";
 
 pub enum FenError {
     InvalidFenFormat {s: String},
@@ -358,6 +358,48 @@ impl Board {
             Err(e) => println!("{:?}", e)
         }
     }
+
+    pub fn to_fen(self) -> String {
+        let mut fen_string = String::new();
+        let mut file = 0;
+        let mut c = 0;
+        for piece in self.table.iter() {
+            if piece.get_piece() == Piece::Empty {
+                file += 1;
+            } else {
+                if file > 0 {
+                    file = 0;
+                    fen_string.push_str(&file.to_string());
+                }
+                fen_string.push(self.resolve_to_fen_piece(piece.get_piece()));
+            }
+            if c%8 == 0 {
+                fen_string.push('/');
+                file = 0;
+            }
+
+            c += 1;
+        }
+        fen_string.push(' ');
+
+        self.resolve_to_fen_turn(self.turn);
+        fen_string.push(self.resolve_to_fen_turn(self.turn));
+        fen_string.push(' ');
+
+        fen_string.push_str(&self.resolve_to_fen_castling_ability(self.castling_ability));
+        fen_string.push(' ');
+
+        fen_string.push_str(&self.resolve_to_fen_enpassant_square(self.en_passent_square.get_square_int()));
+        fen_string.push(' ');
+
+        fen_string.push_str(&self.half_move_count.to_string());
+        fen_string.push(' ');
+
+        fen_string.push_str(&self.moves_count.to_string());
+        
+        fen_string
+    }
+
     pub fn fen(&mut self, s: &str) -> Result<Board, FenError> {
         // Split to FEN fields
         let split = s.trim().split_whitespace();
@@ -490,6 +532,67 @@ impl Board {
             'Q' => Piece::new(Piece::WQUEEN, Square::new(sq)),
             'K' => Piece::new(Piece::WKING, Square::new(sq)),
             _ => Piece::new(Piece::Empty, Square::new(sq))
+        }
+    }
+
+    fn resolve_to_fen_piece(&self, p: u8) -> char {
+        match p {
+            Piece::BPAWN => 'p',
+            Piece::BROOK => 'r',
+            Piece::BKNIGHT => 'n',
+            Piece::BBISHOP => 'b',
+            Piece::BQUEEN => 'q',
+            Piece::BKING => 'k',
+
+            Piece::WPAWN => 'P',
+            Piece::WROOK => 'R',
+            Piece::WKNIGHT => 'N',
+            Piece::WBISHOP => 'B',
+            Piece::WQUEEN => 'Q',
+            Piece::WKING => 'K',
+            _ => '-'
+        }
+    }
+
+    fn resolve_to_fen_turn(&self, turn: bool) -> char {
+        match turn {
+            false => 'w',
+            true => 'b',
+            _ => '-'
+        }
+    }
+
+    fn resolve_to_fen_castling_ability(&self, cas: u8) -> String {
+        let mut _castling = String::new();
+        if self.castling_ability & 0b1000 != 0 {_castling.push('k')}
+        if self.castling_ability & 0b0100 != 0 {_castling.push('q')}
+        if self.castling_ability & 0b0010 != 0 {_castling.push('K')}
+        if self.castling_ability & 0b0001 != 0 {_castling.push('Q')}
+        _castling
+
+    }
+
+    fn resolve_to_fen_enpassant_square(&self, sq: u8) -> &str {
+        match sq {
+            40 => "a3",
+            41 => "b3",
+            42 => "c3",
+            43 => "d3",
+            44 => "e3",
+            45 => "f3",
+            46 => "g3",
+            47 => "h3",
+
+            16 => "a6",
+            17 => "b6",
+            18 => "c6",
+            19 => "d6",
+            20 => "e6",
+            21 => "f6",
+            22 => "g6",
+            23 => "h6",
+            64 => "-",
+            _ => "-"
         }
     }
 }

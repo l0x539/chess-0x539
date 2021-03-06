@@ -3,6 +3,7 @@ extern crate wasm_bindgen;
 use chess_core::{board::Board, square::Square};
 use wasm_bindgen::prelude::*;
 use js_sys::Array;
+use js_sys::JsString;
 use js_sys::Boolean;
 
 #[macro_use]
@@ -53,9 +54,11 @@ impl GameWasmClient {
         };
         if self.board.is_checkmate() {
             status[2] = 1;
-        } else if self.board.is_stale_mate() {
+        } 
+        if self.board.is_stale_mate() {
             status[2] = 2;
-        } else if self.board.is_draw() {
+        } 
+        if self.board.is_draw() {
             status[2] = 3;
         };
         let status: Vec<u8> = status.to_vec();
@@ -63,8 +66,17 @@ impl GameWasmClient {
 
     }
 
-    pub fn get_board(&mut self) -> Array {
+    pub fn get_side(&self) -> Boolean {
+        Boolean::from(self.board.turn)
+    }
+
+    pub fn get_board(&self) -> Array {
         let board: Vec<u8> = self.board.bitboard.to_vec();
         board.into_iter().map(JsValue::from).collect()
+    }
+
+    pub fn get_fen_board(&mut self) -> JsString {
+        let fen_board: String = self.board.to_fen();
+        JsString::from(fen_board)
     }
 }
