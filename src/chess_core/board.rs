@@ -71,6 +71,19 @@ impl Board {
         println!("{:?}", self.table);
     }
 
+    pub fn get_default_squares(&self, piece:u8) -> Vec<u8> {
+        Perms.get_piece_default_permitterd_squares(&self.table[piece as usize])
+    }
+    pub fn get_permitted_squares(&self, piece:u8) -> Vec<u8> {
+        let mut squares: Vec<u8> = Vec::new();
+        for sq in Perms.get_piece_default_permitterd_squares(&self.table[piece as usize]) {
+            if Perms.is_can_move(self, &self.table[piece as usize], &self.table[sq as usize].square) {
+                squares.push(sq);
+            }
+        }
+        squares
+    }
+
     pub fn is_checkmate(&self) -> bool {
         let king = self.get_king();
         if Perms.is_checkmate(self, king) {

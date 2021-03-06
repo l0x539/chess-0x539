@@ -7,6 +7,7 @@ const useStyle = makeStyles((theme) => ({
     root: {
         paddingTop: 20,
         paddingBottom: 20,
+        paddingLeft: 15,
     }
 }));
 
@@ -16,7 +17,7 @@ const LeftSideBar = ({timeRemaining, userName}) => {
             <Grid container direction="column"
             justify="flex-start"
             alignItems="flex-end"
-            spacing={3}>
+            spacing={3} >
                 <Grid item>
                     <Side side={false} timeRemaining={timeRemaining} userName={userName} />
                 </Grid>

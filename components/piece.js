@@ -11,7 +11,7 @@ class Piece extends Component {
                 x: 0,
                 y: 0,
               },
-              piece_position: {x: Math.floor(square%8)*(board_width/8), y: Math.floor(square/8)*(board_height/8)}
+              piece_position: {x: Math.floor(square%8)*(board_width/8), y: Math.floor(square/8)*(board_height/8)},
         }
     } 
 
@@ -23,18 +23,21 @@ class Piece extends Component {
             }
         });
         this.setState({isDragging: true})
+        this.props.clickOverlay(null)
     };
 
     startDrag = (e, coreEvent) => {
-        const { position, board_width, board_height } = this.props;
+        const { position, board_width, board_height, square } = this.props;
         this.setState({
             piece_position: {x: position.x - (board_width/16), y: position.y - (board_height/16)}
         })
+        this.props.clickOverlay(square+1)
         this.setState({isDragging: true})
     }
       
     stopDragging = (e, ui) => {
         const { square, board_width, board_height } = this.props;
+
         this.setState({isDragging: false})
         this.setState({
             piece_position: {x: Math.floor(square%8)*(board_width/8), y: Math.floor(square/8)*(board_height/8)}
@@ -52,7 +55,7 @@ class Piece extends Component {
 
 
     render () {
-        const { piece_type, square, board_width, board_height } = this.props;
+        const { piece_type, square, board_width, board_height, clicked } = this.props;
         return <Draggable
             bounds="parent"
             onDrag={this.handleDrag}
@@ -60,7 +63,7 @@ class Piece extends Component {
             position={ this.state.piece_position }
             onStart={this.startDrag}
             >
-                <div className={"piece p" + piece_type + " sq-" + square + " " + (this.state.isDragging?"dragging":"")}></div>
+                <div className={"piece p" + piece_type + " sq-" + square + " " + (this.state.isDragging?"dragging":"") + " " + (clicked===square+1?"clicked":"")}></div>
             </Draggable>
     }
 }

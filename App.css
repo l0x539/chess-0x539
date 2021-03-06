@@ -61,6 +61,10 @@
   transition: transform 0.3s ease;
 }
 
+.piece.clicked {
+  filter: invert(22%) sepia(54%) saturate(196%) hue-rotate(225deg) brightness(105%) contrast(117%);
+}
+
 #board-blank .piece.p0 {
 	background-image: url('./themes/default//wp.png');
 }

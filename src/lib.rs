@@ -79,4 +79,47 @@ impl GameWasmClient {
         let fen_board: String = self.board.to_fen();
         JsString::from(fen_board)
     }
+
+    pub fn get_default_squares(&self, piece: u8) -> Array {
+        self.board.get_default_squares(piece).into_iter().map(JsValue::from).collect()
+    }
+
+    pub fn get_permitted_squares(&self, piece: u8) -> Array {
+        self.board.get_permitted_squares(piece).into_iter().map(JsValue::from).collect()
+    }
+
+    pub fn update_clone_board(&self, square: u8, square_to: u8, promote: u8) -> Array {
+        let mut status = [self.board.turn as u8, 0, 0];
+        let mut test_board = self.board.clone();
+        let piece_move = test_board.move_piece(test_board.table[square as usize], Square::new(square_to), promote);
+        if piece_move {
+            test_board.switch_turn();
+            status[0] = if self.board.turn {0} else {1};
+        };
+        if test_board.is_incheck() {
+            status[1] = 1;
+        };
+        if test_board.is_checkmate() {
+            status[2] = 1;
+        } 
+        if test_board.is_stale_mate() {
+            status[2] = 2;
+        } 
+        if test_board.is_draw() {
+            status[2] = 3;
+        };
+        let status: Vec<u8> = status.to_vec();
+        status.into_iter().map(JsValue::from).collect()
+
+    }
+
+    pub fn reset_board(&mut self) -> Self {
+        let mut board = Board::new();
+        board.initialize_classic_start_board();
+        self.board = board;
+        Self {
+            board: board
+        }
+    }
+
 }

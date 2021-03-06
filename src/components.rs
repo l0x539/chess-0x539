@@ -35,8 +35,6 @@ impl Component {
             .unwrap();
 
         image_obj.set_src(self.url.as_str());
-
-        super::log(format!("image_obj: {:?}", image_obj).as_str());
         
 
         let image_x = 0;
@@ -47,7 +45,6 @@ impl Component {
         ctx.draw_image_with_html_canvas_element(&canvas, image_x as f64, image_y as f64)?;
 
         let  image_data = ctx.get_image_data(image_x as f64, image_y as f64, image_width as f64, image_height as f64);
-        super::log(format!("{:?}", image_data).as_str());
         let data = image_data.unwrap().data();
         ctx.clear_rect(0., 0., canvas.width() as f64, canvas.height() as f64);
         Ok((data, image_width, image_height))

@@ -19,7 +19,7 @@ const useStyle = makeStyles((theme) => ({
     }
 }));
 
-const RightSideBar = ({isQueuing, isPlaying, startPlaying, startInvite, resign, offerDraw, timeRemaining, userName}) => {
+const RightSideBar = ({draw_offerer, isQueuing, isPlaying, startPlaying, startInvite, resign, offerDraw, timeRemaining, userName}) => {
 
 
     const classes = useStyle();
@@ -28,7 +28,7 @@ const RightSideBar = ({isQueuing, isPlaying, startPlaying, startInvite, resign, 
             justify="flex-start"
             alignItems="stretch"
             spacing={3}>
-                <Grid item xs={6}>
+                <Grid item xs={8}>
                     <Side side={false} timeRemaining={timeRemaining} userName={userName} />
                 </Grid>
                 <Grid item>
@@ -38,7 +38,7 @@ const RightSideBar = ({isQueuing, isPlaying, startPlaying, startInvite, resign, 
                     <LargeButton onClick={resign} placeHolder={"Resign"} color={"primary"} Icon={<img src={ResignImage} />} />
                 </Grid>
                 <Grid item xs={12}>
-                    <LargeButton onClick={offerDraw} placeHolder={"Offer Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} />
+                    {draw_offerer?<Fragment><LargeButton onClick={offerDraw} placeHolder={"Accept Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} /><LargeButton onClick={offerDraw} placeHolder={"Accept Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} /></Fragment>:<LargeButton onClick={offerDraw} placeHolder={"Offer Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} />}
                 </Grid>
             </Fragment>
             :isQueuing?<Grid container style={{height: 400}} height={"400"} direction="row"

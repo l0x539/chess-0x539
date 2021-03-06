@@ -13,7 +13,7 @@ const useStyle = makeStyles((theme) => ({
 const Timer = ({timeRemaining}) => {
     const classes = useStyle();
     return <Paper elevation={3} className={classes.paper}>
-        <Typography align="center" h4>{timeRemaining>0?Math.floor(timeRemaining/60).toLocaleString('en-US', {
+        <Typography align="center" >{timeRemaining>0?Math.floor(timeRemaining/60).toLocaleString('en-US', {
     minimumIntegerDigits: 2,
     useGrouping: false
   }):"00"}:{timeRemaining>0?Math.floor(timeRemaining%60).toLocaleString('en-US', {

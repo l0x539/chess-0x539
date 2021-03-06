@@ -132,12 +132,12 @@ class Header extends Component {
     async componentDidMount () {
       const me = await getMe(window.localStorage?.token)
         if (!me.error) {
-            this.setState({user: {isUser: true, ...me}})
+          await this.setState({user: {isUser: true, ...me}})
         } else {
             const guest = window.localStorage.guest;
             const user = guest?JSON.parse(guest):await createGuest()
             window.localStorage.guest = JSON.stringify(user);
-            this.setState({user: {isUser: false, ...user}})
+            await this.setState({user: {isUser: false, ...user}})
         }
     }
 

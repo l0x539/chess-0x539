@@ -5,7 +5,7 @@ export const getMe = async (token) => {
         headers: {
           'Authorization': 'Bearer '+ token
         },
-      }).catch().then(res => {
+      }).then(res => {
             return res.json();
         })
 }
@@ -14,7 +14,7 @@ export const getGuest = async (user_id) => {
     return await fetch(URL + "/guests/" + user_id, {
       }).then(res => {
             return res.json();
-        }).catch()
+        })
 }
 
 export const getUser = async (user_id, userToken) => {
@@ -24,7 +24,7 @@ export const getUser = async (user_id, userToken) => {
         },
       }).then(res => {
             return res.json();
-        }).catch()
+        })
 }
 
 export const createGuest = async (data = {}) => {
@@ -34,14 +34,14 @@ export const createGuest = async (data = {}) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
-      }).catch();
+      });
       return response.json();
 }
 
 export const searchQueue = async (user_id) => {
     return await fetch(URL + "/queues?_where[0][created_at_gte]=120&_sort=created_at:ASC&user_id_ne="+user_id).then(res => {
             return res.json();
-        }).catch()
+        })
 }
 
 export const createQueue = async (data = {}) => {
@@ -51,7 +51,7 @@ export const createQueue = async (data = {}) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
-      }).catch();
+      });
       return response.json();
 }
 
@@ -62,20 +62,20 @@ export const createInvite = async (data = {}) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(data)
-    }).catch();
+    });
     return response.json();
 }
 
 export const findInvite = async (invite) => {
   return await fetch(URL + "/invites?_where[0][created_at_gte]=600&_sort=created_at:ASC&link_eq="+invite).then(res => {
           return res.json();
-      }).catch()
+      })
 }
 
 export const searchGame = async (game_id) => {
     return await fetch(URL + "/games/" + game_id).then(res => {
             return res.json();
-        }).catch()
+        })
 }
 
 export const updateGame = async (id, data = {}) => {
@@ -85,6 +85,6 @@ export const updateGame = async (id, data = {}) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
-      }).catch();
+      });
       return response.json();
 }

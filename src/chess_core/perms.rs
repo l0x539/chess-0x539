@@ -729,7 +729,7 @@ impl Perms {
         occupiers
     }
 
-    fn get_piece_default_permitterd_squares(&self, piece: &Piece) -> Vec<u8> {
+    pub fn get_piece_default_permitterd_squares(&self, piece: &Piece) -> Vec<u8> {
         let mut vec = Vec::new();
         if piece.get_piece() == Piece::Empty {
             return vec;
