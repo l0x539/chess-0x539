@@ -63,7 +63,7 @@ class Main extends Component {
 
             this.timerID = setInterval(
               () => this.tick(),
-              500
+              1000
             );
             const me = await getMe(window.localStorage?.token)
             if (!me.error) {
@@ -163,10 +163,6 @@ class Main extends Component {
 
     async tick() {
         try {
-            this.setState({
-            date: new Date()
-            });
-
             if (this.state.game.draw_offerer && ! this.state.draw_offerer) {
                 if (this.state.draw_offerer !== this.state.user.id) {
                     this.setState({draw_offered: true})
@@ -299,6 +295,9 @@ class Main extends Component {
                 }
             } else {
             }
+            this.setState({
+                date: new Date(),
+            });
         } catch (error) {
             console.log("error here");
             console.log(error);
