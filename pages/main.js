@@ -150,7 +150,8 @@ class Main extends Component {
             this.setState({suggestWin: "checkmate"})
             await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "checkmate"})
 
-            this.openModal("CheckMate", !this.state.status[0]?"Black" + " Won the game": "White" + " Won the game")
+            this.openModal("CheckMate", !this.state.status[0]?"Black" + " won": "White" + " won")
+            this.reset()
             
 
         } else if (this.state.status[2] === 2) {
@@ -158,12 +159,14 @@ class Main extends Component {
             this.setState({suggestWin: "stalemate"})
             await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "stalemate"})
             this.openModal("StaleMate", "Draw by stalemate")
+            this.reset()
             
         } else if (this.state.status[2] === 3) {
             // draw
             this.setState({suggestWin: "draw"})
             await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "draw"})
             this.openModal("Draw", "Game was drawn")
+            this.reset()
             
         }
         

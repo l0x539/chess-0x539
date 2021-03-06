@@ -228,6 +228,16 @@ impl Board {
             }
         }
         if Perms.is_can_move(&self, &piece, &square) {
+            
+            if (piece.get_piece() == Piece::WPAWN || piece.get_piece() == Piece::BPAWN) && (self.en_passent_square.get_square_int() != Square::NO_SQUARE.get_square_int()) && (self.en_passent_square.get_square_int() == square.get_square_int()) {
+                if piece.get_piece() == Piece::WPAWN && ((square.get_square_int() as i8 - piece.square.get_square_int() as i8 == -9) || (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == -7)) {
+                    self.clear_piece_square(self.table[(square.get_square_int() + 8) as usize]);
+                } else if piece.get_piece() == Piece::BPAWN && ((square.get_square_int() as i8 - piece.square.get_square_int() as i8 == 9) || (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == 7)) {
+                    self.clear_piece_square(self.table[(square.get_square_int() - 8) as usize]);
+                }
+            }
+            
+
             self.set_enpassant_square(Square::NO_SQUARE);
 
             let mut is_promote = false;
@@ -262,10 +272,6 @@ impl Board {
                     self.set_enpassant_square(self.table[(square.get_square_int() + 8) as usize].square);
                 } else if piece.get_piece() == Piece::BPAWN && (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == 8 + 8) {
                     self.set_enpassant_square(self.table[(square.get_square_int() - 8) as usize].square)
-                } else if piece.get_piece() == Piece::WPAWN && ((square.get_square_int() as i8 - piece.square.get_square_int() as i8 == -9) || (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == -7)) {
-                    self.clear_piece_square(self.table[(square.get_square_int() + 8) as usize]);
-                } else if piece.get_piece() == Piece::BPAWN && ((square.get_square_int() as i8 - piece.square.get_square_int() as i8 == 9) || (square.get_square_int() as i8 - piece.square.get_square_int() as i8 == 7)) {
-                    self.clear_piece_square(self.table[(square.get_square_int() - 8) as usize]);
                 }
             }
 

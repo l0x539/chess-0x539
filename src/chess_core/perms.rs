@@ -79,8 +79,6 @@ impl Perms {
                     occs.push(o);
                 }
             }
-
-
             
 
             for sq in self.get_piece_default_permitterd_squares(&king) {
@@ -90,21 +88,27 @@ impl Perms {
                 if occs.len() == 1 {
                     let defenders = self.is_square_occupied_by_opponent(!king.side, board, &occs[0].square);
                     for defender in defenders {
-                        if !self.is_piece_pinned(*board, &defender) && defender.get_piece() != king.get_piece() {
+                        if !self.is_piece_pinned(*board, &defender, occs[0].square) && defender.get_piece() != king.get_piece() {
                             return false;
                         }
                     }
                     if occs[0].get_piece() != Piece::BKNIGHT && occs[0].get_piece() != Piece::WKNIGHT && occs[0].get_piece() != Piece::BPAWN && occs[0].get_piece() != Piece::WPAWN && occs[0].get_piece() != Piece::WKING && occs[0].get_piece() != Piece::BKING {
                         let new_ray_king_checker = draw_ray(king.square.get_square_int(), occs[0].square.get_square_int());
-                        for &block_square_empty_piece in new_ray_king_checker.iter() {
-                            if block_square_empty_piece != king.square.get_square_int() && block_square_empty_piece != occs[0].square.get_square_int() {
-                                let all_def = self.is_square_occupied_by_opponent(!king.side, board, &board.table[block_square_empty_piece as usize].square);
 
+                        for &block_square_empty_piece in new_ray_king_checker.iter() {
+
+                            if block_square_empty_piece != king.square.get_square_int() && block_square_empty_piece != occs[0].square.get_square_int() {
+
+                                let all_def = self.is_square_occupied_by_opponent(!king.side, board, &board.table[block_square_empty_piece as usize].square);
+                                
                                 for def in all_def {
 
-                                    if def.get_piece() != king.get_piece() && (((def.get_piece() != Piece::WPAWN) || (def.get_piece() != Piece::BPAWN)) && def.get_file_square() == block_square_empty_piece%8) {
+                                    if def.get_piece() != king.get_piece() && (def.get_piece() != Piece::WPAWN) && (def.get_piece() != Piece::BPAWN) {
                                         return false;
                                     }
+                                }
+                                if self.check_pawn_can_move_to(king.side, board, board.table[block_square_empty_piece as usize].square) {
+                                    return false;
                                 }
                             }
                         }
@@ -119,6 +123,31 @@ impl Perms {
         false
     }
 
+    fn check_pawn_can_move_to(&self, side: bool, board: &Board, sq: Square) -> bool {
+        if (!side) {
+            if board.table[(sq.get_square_int()-8)as usize].get_piece() == Piece::WPAWN {
+                if !self.is_piece_pinned(*board, &board.table[(sq.get_square_int()+8) as usize], sq) {
+                    return true;
+                }
+            } else if (sq.get_square_int()/8 == 3) && (board.table[(sq.get_square_int()+8) as usize].get_piece() == Piece::Empty) && (board.table[(sq.get_square_int()+16) as usize].get_piece() == Piece::WPAWN) {
+                if !self.is_piece_pinned(*board, &board.table[(sq.get_square_int()+16) as usize], sq) {
+                    return true;
+                };
+            }
+        } else {
+            if board.table[(sq.get_square_int()-8) as usize].get_piece() == Piece::BPAWN {
+                if !self.is_piece_pinned(*board, &board.table[(sq.get_square_int()-8) as usize], sq) {
+                    return true;
+                }
+            } else if (sq.get_square_int()/8 == 3) && (board.table[(sq.get_square_int()-8) as usize].get_piece() == Piece::Empty) && (board.table[(sq.get_square_int()-16) as usize].get_piece() == Piece::BPAWN) {
+                if !self.is_piece_pinned(*board, &board.table[(sq.get_square_int()-16) as usize], sq) {
+                    return true;
+                };
+            }
+        }
+        false
+    }
+
     pub fn is_stalemate(&self, board: &Board, king: Piece) -> bool {
         if !self.is_king_in_check(board) {
             let permitted_squares = self.get_piece_default_permitterd_squares(&king);
@@ -129,13 +158,17 @@ impl Perms {
             }
             for &piece in board.table.iter() {
                 if piece.side == board.turn {
-                    
-                    if !self.is_piece_pinned(*board, &piece) && piece.get_piece() != Piece::WKING && piece.get_piece() != Piece::WKING && piece.get_piece() != Piece::Empty {
-                        let permitted_squares = self.get_piece_default_permitterd_squares(&piece);
-                        for loc in permitted_squares {
-                            
-                            if self.is_can_capture(board, &piece, &board.table[loc as usize].square) {
-                                return false;
+                    let squares = self.get_piece_default_permitterd_squares(&piece);
+                    for sq in squares {
+                        if board.table[sq as usize].get_piece() == Piece::Empty {
+                            if !self.is_piece_pinned(*board, &piece, board.table[sq as usize].square) && piece.get_piece() != Piece::WKING && piece.get_piece() != Piece::WKING && piece.get_piece() != Piece::Empty {
+                                let permitted_squares = self.get_piece_default_permitterd_squares(&piece);
+                                for loc in permitted_squares {
+                                    
+                                    if self.is_can_capture(board, &piece, &board.table[loc as usize].square) {
+                                        return false;
+                                    }
+                                }
                             }
                         }
                     }
@@ -149,10 +182,11 @@ impl Perms {
         
     }
 
-    pub fn is_piece_pinned(&self, board :Board, piece :&Piece) -> bool {
+    pub fn is_piece_pinned(&self, board :Board, piece :&Piece, new_square: Square) -> bool {
         if piece.get_piece() == Piece::WKING || piece.get_piece() == Piece::BKING {return false;}
         let mut test_board = board.clone();
         test_board.table[piece.square.get_square_int() as usize] = Piece::new(Piece::Empty, piece.square);
+        test_board.table[new_square.get_square_int() as usize] = Piece::new(piece.get_piece(), piece.square);
 
         if self.is_king_in_check(&test_board) {
             return true;
