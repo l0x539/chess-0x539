@@ -232,7 +232,6 @@ class Main extends Component {
                     if (game.isPlaying) {
                         this.setState({queue: {}})
                         this.setState({isPlaying: true})
-
                         
                     } else {
                         this.startPlay()
@@ -338,8 +337,6 @@ class Main extends Component {
             });
         } catch (error) {
             console.log("error here");
-            console.log(this.state.game);
-            console.log(this.state.user);
             console.log(error);
         }
     }
@@ -533,7 +530,7 @@ class Main extends Component {
                 >
                     <Grid item xs={12} md={2}>
                         <Paper className={classes.paper}>
-                            <LeftSideBar userName={this.state.oponent?this.state.oponent:"Opponent"} timeRemaining={this.state.timeRemainingOpp} />
+                            <LeftSideBar userName={this.state.oponent?this.state.oponent:"Opponent"} timeRemaining={this.state.startSide === "black"? this.state.timeRemaining:this.state.timeRemainingOpp} />
                         </Paper>
                     </Grid>
                     <Grid item xs={12} md={5}>
@@ -545,7 +542,7 @@ class Main extends Component {
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <Paper className={classes.paper}>
-                            <RightSideBar cancelPlay={this.cancelPlay} idraw_offered={this.state.idraw_offered} declineDraw={this.declineDraw} draw_offered={this.state.draw_offered} userName={this.state.user.username? this.state.user.username: "Guest"+this.state.user.randomNumber} timeRemaining={this.state.timeRemaining} isQueuing={this.state.isQueuing} isPlaying={this.state.isPlaying} startPlaying={this.startPlay} startInvite={this.startInvite} resign={this.gameReisgn} offerDraw={this.offerDraw} />
+                            <RightSideBar cancelPlay={this.cancelPlay} idraw_offered={this.state.idraw_offered} declineDraw={this.declineDraw} draw_offered={this.state.draw_offered} userName={this.state.user.username? this.state.user.username: "Guest"+this.state.user.randomNumber} timeRemaining={this.state.startSide === "black"?this.state.timeRemainingOpp: this.state.timeRemaining} isQueuing={this.state.isQueuing} isPlaying={this.state.isPlaying} startPlaying={this.startPlay} startInvite={this.startInvite} resign={this.gameReisgn} offerDraw={this.offerDraw} />
                         </Paper>
                     </Grid>
                 </Grid>
