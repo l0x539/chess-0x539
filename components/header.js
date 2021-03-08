@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { AppBar, Toolbar, Grid, Drawer, Button, IconButton, Divider, List, ListItem, ListItemText, ListItemIcon, SvgIcon, Avatar } from "@material-ui/core";
+import { CircularProgress, AppBar, Toolbar, Grid, Drawer, Button, IconButton, Divider, List, ListItem, ListItemText, ListItemIcon, SvgIcon, Avatar } from "@material-ui/core";
 import { withStyles , useTheme } from '@material-ui/core/styles';
 import SearchBar from "./searchBar";
 import theme from "../utils";
@@ -18,7 +18,13 @@ import logo from "../logo.png";
 import {ReactComponent as SvgPlay} from "../themes/svgs/chess2.svg"
 import {ReactComponent as SvgCommunity} from "../themes/svgs/chesspieces.svg"
 import ImgExplorer from "../themes/svgs/website.png"
-import { createGuest, getMe } from '../utils/apiStrapi';
+import { createGuest, getMe, login, signUp } from '../utils/apiStrapi';
+import Exit from '@material-ui/icons/ExitToApp'
+
+
+import { EventMolal } from "./eventModal";
+import { Login } from "./login";
+import { SignUp } from "./signup";
 
 const drawerWidth = 200;
 
@@ -117,7 +123,7 @@ class Header extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            open: false
+            open: false,
         }
     }
 
@@ -130,21 +136,136 @@ class Header extends Component {
     };
 
     async componentDidMount () {
-      const me = await getMe(window.localStorage?.token)
-        if (!me.error) {
-          await this.setState({user: {isUser: true, ...me}})
-        } else {
-            const guest = window.localStorage.guest;
+        try {
+          if (window.localStorage.user) {
+            try {
+              const u = JSON.parse(window.localStorage.user)
+              let me = await getMe(u.metoken)
+              if (!me.error) {
+                me.id = window.localStorage.user.id
+                me.token = window.localStorage.user.token
+                me.metoken = me.jwt
+
+                await this.setState({user: {isUser: false, ...me}})
+                window.localStorage.user = JSON.stringify(user);
+                this.props.readyContent()
+                return
+              } else {
+              }
+  
+            } catch {
+              //window.localStorage.user = undefined
+            }
+          }
+          try {
+            const guest = window.localStorage.user;
+
             const user = guest?JSON.parse(guest):await createGuest()
-            window.localStorage.guest = JSON.stringify(user);
-            await this.setState({user: {isUser: false, ...user}})
+            if (!user.error) {
+              window.localStorage.user = JSON.stringify(user);
+              await this.setState({user: {isUser: false, ...user}})
+
+              this.props.readyContent()
+            }
+          } catch {
+              //window.localStorage.user = undefined
+          }
+      } catch {
+
+      }
+        
+    }
+
+    joinCall = () => {
+      this.setState({openModalJoin: true})
+    }
+
+    closeJoin = () => {
+      this.setState({openModalJoin: false})
+    }
+
+    signUp = () => {
+      this.setState({signup: true})
+    }
+
+    logIn = () => {
+      this.setState({signup: false})
+    }
+
+    loginUser = async (username, password) => {
+      this.setState({logging_in:true})
+      const _user = await login(username, password)
+      if (_user.error) {
+        this.setState({notification: _user.error})
+        
+
+
+      } else {
+        const user = _user.user;
+        user.id = this.state.user.id
+        user.metoken = _user.jwt
+        user.token = this.state.user.token
+        await this.setState({user: {isUser: false, ...user.user}})
+        this.setState({signup: false})
+        this.setState({notification: "Logged in successfully"})
+        this.props.readyContent()
+        this.closeJoin()
+        window.localStorage.user = JSON.stringify(user);
+        window.location = "/"
+
+      }
+
+      this.setState({logging_in:false})
+
+      
+    }
+
+    signupUser = async (email, username, password) => {
+      this.setState({logging_in:true})
+        const resp = await signUp(email, username, password)
+        if (resp.error) {
+          this.setState({notification: resp.error})
+        } else {
+          this.setState({signup: false})
+          this.setState({notification: "New Accounted created"})
         }
+        this.setState({logging_in:false})
+
+    }
+
+    logout = () => {
+      window.localStorage.removeItem("user")
+      window.location = "/"
+    }
+
+    goToExplorer = () => {
+      if (window.location.pathname !== "/explorer")
+      window.location = "/explorer"
+    }
+    goToMain = () => {
+      if (window.location.pathname !== "/")
+
+      window.location = "/"
+
+    }
+    goToCommunity = () => {
+      if (window.location.pathname !== "/community")
+
+      window.location = "/community"
+    }
+
+    goToSettings = () => {
+      if (window.location.pathname !== "/settings")
+      window.location = "/settings"
+
     }
 
     render () {
         const { logged_in } = this.props;
         const { classes } = this.props;
         return <Fragment>
+
+                <EventMolal isopen={this.state.openModalJoin} content={this.state.logging_in?<CircularProgress />:this.state.signup?<SignUp logIn={this.logIn} signupUser={this.signupUser} />:<Login signUp={this.signUp} loginUser={this.loginUser}  />} closeModal={this.closeJoin} ></EventMolal> 
                 <AppBar
                     position="fixed"
                     className={clsx(classes.appBar, {
@@ -195,9 +316,9 @@ class Header extends Component {
                             </Grid>
                             <div className={"left"}>
                             </div>
-                            <Grid item><Button to="/" color="secondary">Home</Button></Grid>
-                            <Grid item><Button to="/community" color="secondary">Community</Button></Grid>
-                            <Grid item><Button to="/explorer" color="secondary">Explorer</Button></Grid>
+                            <Grid item><Button onClick={this.goToMain} to="/" color="secondary">Home</Button></Grid>
+                            <Grid item><Button onClick={this.goToCommunity} to="/community" color="secondary">Community</Button></Grid>
+                            <Grid item><Button onClick={this.goToExplorer} to="/explorer" color="secondary">Explorer</Button></Grid>
                             <Grid item>
                                 <Grid container
                                 direction="row"
@@ -208,10 +329,11 @@ class Header extends Component {
                                     <Grid item><IconButton className={classes.toggleTablet} onClick={this.toggleFullscreen}><FullscreenIcon/></IconButton></Grid>
                                     <Grid item><IconButton className={classes.toggleTablet} onClick={this.props.changeThemeColor}>{this.props.themeColor=="primary"?<Brightness2Icon/>:<WbSunnyIcon/>}</IconButton></Grid>
                                     <Grid item>
-                                      {this.state.isloggedIn?<Avatar />:<Button
+                                      {this.state.user?.username?<Avatar />:<Button
                                         aria-controls="services-menu"
                                         aria-haspopup="true"
                                         color="secondary"
+                                        onClick={this.joinCall}
                                         className={classes.joinButton}
                                         >Join</Button>}
                                         
@@ -248,18 +370,21 @@ class Header extends Component {
                 </IconButton>
                 </div>
                 <List>
-                    <ListItem button >
+                    <ListItem button onClick={this.goToMain} >
                     <ListItemIcon className={classes.icon} ><SvgPlay className={classes.icon} /></ListItemIcon>
                     <ListItemText primary={"Play"} />
                     </ListItem>
-                    <ListItem button >
+                    <ListItem button onClick={this.goToCommunity} >
                     <ListItemIcon className={classes.icon} ><SvgCommunity className={classes.icon} /></ListItemIcon>
                     <ListItemText primary={"Community"} />
                     </ListItem>
-                    <ListItem button >
+                    <ListItem button onClick={this.goToExplorer} >
                     <ListItemIcon className={classes.icon} ><img src={ImgExplorer}/></ListItemIcon>
                     <ListItemText primary={"Explorer"} />
                     </ListItem>
+                    
+                    
+                    
                 </List>
                 <Divider />
                 <List>
@@ -269,6 +394,10 @@ class Header extends Component {
                     <ListItemText  primary={text} />
                     </ListItem>
                 ))}
+                {this.state.user?.username?<ListItem button onClick={this.logout} >
+                    <ListItemIcon className={classes.icon} ><Exit/></ListItemIcon>
+                    <ListItemText primary={"Logout"} />
+                    </ListItem>:""}
                 </List>
             </Drawer>
             </Fragment>

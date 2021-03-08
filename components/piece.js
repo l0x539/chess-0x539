@@ -1,6 +1,7 @@
 
-import { Component, useState } from 'react';
+import { Component, Fragment, useState } from 'react';
 import Draggable from 'react-draggable';
+import { Overlay } from "./overlay";
 
 class Piece extends Component {
     constructor(props) {
@@ -12,6 +13,7 @@ class Piece extends Component {
                 y: 0,
               },
               piece_position: {x: Math.floor(square%8)*(board_width/8), y: Math.floor(square/8)*(board_height/8)},
+              overlay_position: {x: Math.floor((square%8)*((board_width)/8)), y: Math.floor(square/8)*(board_height/8)},
         }
     } 
 
@@ -32,7 +34,7 @@ class Piece extends Component {
             piece_position: {x: position.x - (board_width/16), y: position.y - (board_height/16)}
         })
         this.props.clickOverlay(square+1)
-        this.setState({isDragging: true})
+        this.setState({isDragging: false})
     }
       
     stopDragging = (e, ui) => {
@@ -52,19 +54,25 @@ class Piece extends Component {
         } else this.props.updateBoard(square, square_to_go, 0);
     }
 
+    componentDidMount () {
+        
+    }
 
 
     render () {
-        const { piece_type, square, board_width, board_height, clicked } = this.props;
-        return <Draggable
-            bounds="parent"
-            onDrag={this.handleDrag}
-            onStop={this.stopDragging}
-            position={ this.state.piece_position }
-            onStart={this.startDrag}
-            >
-                <div className={"piece p" + piece_type + " sq-" + square + " " + (this.state.isDragging?"dragging":"") + " " + (clicked===square+1?"clicked":"")}></div>
-            </Draggable>
+        const { piece_type, square, board_width, board_height, clicked, show_overlay } = this.props;
+        return <Fragment>
+                <Draggable
+                bounds="parent"
+                onDrag={this.handleDrag}
+                onStop={this.stopDragging}
+                position={ this.state.piece_position }
+                onStart={this.startDrag}
+                >
+                    <div className={"piece p" + piece_type + " sq-" + square + " " + (this.state.isDragging?"dragging":"")}></div>
+                </Draggable>
+                {(clicked===square+1 && !show_overlay)?<Overlay board_height={board_height} board_width={board_width} className={"clicked"} overlay_position={this.state.overlay_position} />:""}
+            </Fragment>
     }
 }
 

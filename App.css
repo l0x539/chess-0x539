@@ -46,6 +46,7 @@
   touch-action: none;
   width: 12.5%;
   will-change: transform;
+  z-index: 2;
 }
 
 #board-blank, .fade-in-overlay {
@@ -61,8 +62,104 @@
   transition: transform 0.3s ease;
 }
 
-.piece.clicked {
-  filter: invert(22%) sepia(54%) saturate(196%) hue-rotate(225deg) brightness(105%) contrast(117%);
+.clicked {
+  background-size: 100%;
+  cursor: pointer;
+  cursor: grab;
+  cursor: -webkit-grab;
+  height: 12.5%;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  touch-action: none;
+  width: 12.5%;
+  will-change: transform;
+  background-color: #27803152;
+  z-index: 1;
+}
+
+.dot {
+  background-size: 100%;
+  cursor: pointer;
+  cursor: grab;
+  cursor: -webkit-grab;
+  height: 12.5%;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  touch-action: none;
+  width: 12.5%;
+  will-change: transform;
+  background-color: #62ff7b85;
+  border-radius: 45px;
+  z-index: 3;
+}
+
+.check {
+  background-size: 100%;
+  cursor: pointer;
+  cursor: grab;
+  cursor: -webkit-grab;
+  height: 12.5%;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  touch-action: none;
+  width: 12.5%;
+  will-change: transform;
+  z-index: 0;
+  background-color: #780b0b99;
+}
+
+.transparent {
+  background-size: 100%;
+  cursor: pointer;
+  cursor: grab;
+  cursor: -webkit-grab;
+  height: 12.5%;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  touch-action: none;
+  width: 12.5%;
+  will-change: transform;
+  border-radius: 45px;
+  z-index: 3;
+}
+
+.last-moved {
+  background-size: 100%;
+  cursor: pointer;
+  cursor: grab;
+  cursor: -webkit-grab;
+  height: 12.5%;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  touch-action: none;
+  width: 12.5%;
+  will-change: transform;
+  background-color: #ffff9d66;
+}
+.last-moved-from {
+  background-size: 100%;
+  cursor: pointer;
+  cursor: grab;
+  cursor: -webkit-grab;
+  height: 12.5%;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  touch-action: none;
+  width: 12.5%;
+  will-change: transform;
+  background-color: #e8ffa066;
 }
 
 #board-blank .piece.p0 {

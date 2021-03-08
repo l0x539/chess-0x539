@@ -50,7 +50,7 @@ Fade.propTypes = {
   onExited: PropTypes.func,
 };
 
-export default function SpringModal({isopen, Title, Description, closeModal}) {
+export default function GameInfoModal({isopen, Title, Description, closeModal}) {
   const classes = useStyles();
 
 

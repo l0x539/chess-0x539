@@ -43,7 +43,7 @@ impl GameWasmClient {
     }
 
     pub fn update_board(&mut self, square: u8, square_to: u8, promote: u8) -> Array {
-        let mut status = [self.board.turn as u8, 0, 0];
+        let mut status = [self.board.turn as u8, 0, 0, 64, 64];
         let piece_move = self.board.move_piece(self.board.table[square as usize], Square::new(square_to), promote);
         if piece_move {
             self.board.switch_turn();
@@ -61,6 +61,9 @@ impl GameWasmClient {
         if self.board.is_draw() {
             status[2] = 3;
         };
+        status[3] = self.board.get_black_king();
+        status[4] = self.board.get_white_king();
+
         let status: Vec<u8> = status.to_vec();
         status.into_iter().map(JsValue::from).collect()
 

@@ -8,6 +8,8 @@ import './App.css';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { createMuiTheme, ThemeProvider, makeStyles } from '@material-ui/core/styles';
 import Header from "./components/header";
+import { CircularProgress, Container, Grid } from "@material-ui/core"
+import { useState } from 'react';
 
 let theme = createMuiTheme({
   palette: {
@@ -51,23 +53,33 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
 function App() {
   const classes = useStyles();
+  const [ready, setReady] = useState(false);
+  const [loadStyle, setLoadStyle] = useState(300);
+
+  const readyContent = () => {
+    setReady(true)
+  }
+
   return (
     <Router>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <div className={classes.root}>
-          <Header />
+          <Header readyContent={readyContent} />
           <main className={classes.content}>
           <Switch>
-              {paths.map((c, i) => 
+              {ready?paths.map((c, i) => 
                   <AppRoute 
                     path={c.path}
                     component={c.component}
                     key={i}
                   />
-              )}
+              ):<Container><Grid container direction="column-reverse"
+              justify="center"
+              alignItems="center"><Grid item ><div style={{height: loadStyle}}></div><CircularProgress /></Grid></Grid></Container>}
             </Switch>
           </main>
         </div>

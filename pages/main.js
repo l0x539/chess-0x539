@@ -37,11 +37,11 @@ class Main extends Component {
             queue: {},
             game: {},
             user: {},
-            durationGame: 15*60,
+            durationGame: 10*60,
             oponent: false,
             isPlaying: false,
             isStarted: false,
-            startSide: null,
+            startSide: "white",
             promote: 0,
             status: [0,0,0,0],
             board: [11, 9, 10, 12, 13, 10, 9, 11, 8, 8, 8, 8, 8, 8, 8, 8, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 2, 4, 5, 2, 1, 3],
@@ -54,27 +54,36 @@ class Main extends Component {
             },
             move_turn: true,
             clicked: null,
-            draw_offered: false
+            draw_offered: false,
+            idraw_offered: false,
+            show_overlay: false,
+            moved_to_pos: [0, 0],
+            moved_from_pos: [0, 0],
+            _arr: [...Array(64).keys()].reverse()
         }
     }
 
     async componentDidMount() {
         try {
-
             this.timerID = setInterval(
               () => this.tick(),
-              1000
+                500
             );
-            const me = await getMe(window.localStorage?.token)
+            const _user = window.localStorage.user?JSON.parse(window.localStorage.user):{}
+            const me = await getMe(_user.metoken)
             if (!me.error) {
-                await this.setState({user: {isUser: true, ...me}})
+                me.token = _user.token
+                me.metoken = _user.metoken
+                me.id = _user.id
+                await this.setState({user: {isUser: false, ...me}})
             } else {
-                await this.setState({user: {isUser: false, ...(JSON.parse(window.localStorage.guest))}})
+                await this.setState({user: {isUser: false, ...(_user)}})
             }
             
-            await GameWasmClient.then((GameWasmClient) => {
+            await GameWasmClient.then(async (GameWasmClient) => {
                 this.setState({ GameWasmEngine: GameWasmClient })
-                this.setState({ board: GameWasmClient.get_board() })
+                let board = await GameWasmClient.get_board();
+                this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
                 this.setState({ status: this.state.status })
             })
 
@@ -88,16 +97,17 @@ class Main extends Component {
 
     joinInvite = async () => {
         const { match: { params } } = this.props;
-        await GameWasmClient.then((GameWasmClient) => {
+        await GameWasmClient.then(async (GameWasmClient) => {
             this.setState({ GameWasmEngine: GameWasmClient })
-            this.setState({ board: GameWasmClient.get_board() })
+            let board = await GameWasmClient.get_board();
+            this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
             this.setState({ status: this.state.status })
         })
         if (params.invite && !this.state.game.isPlaying) {
             const queues = await findInvite(params.invite);
             if (queues.length > 0) {
                 this.setState({queue: queues[0]})
-                const game = await searchGame(queues[0].game_id)
+                const game = await searchGame(queues[0].game_id, )
                 await this._join_game(game)    
             }
         }
@@ -105,21 +115,21 @@ class Main extends Component {
 
     updateBoardManually = async (square, square_to_go) => {
         try {
-
             if (this.state.isPlaying) {
                 if ((this.state.startSide === "black") === this.state.GameWasmEngine.get_side()) {
-
                     await GameWasmClient.then(async (GameWasmClient) => {
                         const status = this.state.GameWasmEngine.update_clone_board(square, square_to_go, this.state.promote);
 
                         if (!(status[0] === this.state.status[0])) {
-
+                            this.clickOverlay(null)
                             updateGame(this.state.game.id, {token: this.state.user.token, suggested_move: JSON.stringify([square, square_to_go])})
                             const status = this.state.GameWasmEngine.update_board(square, square_to_go, this.state.promote);
                             window.status = status
-                            this.setState({ status: status  })
-                            this.setState((state, props) => {return { GameWasmClient: state.GameWasmClient }})
-                            this.setState({ board: this.state.GameWasmClient.get_board() })
+                            await this.setState({ status: status  })
+                            await this.setState({GameWasmClient: GameWasmClient })
+                            let board = await this.state.GameWasmClient.get_board();
+                            this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
+
                             if (!this.state.isStarted) this.startGame();
                         }
                     })
@@ -138,7 +148,7 @@ class Main extends Component {
 
     startGame = async () => {
         try {
-            const joinedGame = await updateGame(this.state.game.id, {token: this.state.user.token, isStarting: true, start_time: new Date()})
+            const joinedGame = await updateGame(this.state.game.id, {token: this.state.user.token, isStarting: true, start_time: true})
             this.setState({isStarted: true})
 
         } catch (err) {
@@ -163,14 +173,30 @@ class Main extends Component {
 
     async tick() {
         try {
-            if (this.state.game.draw_offerer && ! this.state.draw_offerer) {
-                if (this.state.draw_offerer !== this.state.user.id) {
+
+            if (!this.state.reversed && this.state.startSide === "black") {
+                this.setState((state, props) => {
+                    return {board: state.board.reverse()}
+                })
+                this.setState({reversed: true})
+            }
+
+            if (this.state.game.draw_offerer && !this.state.draw_offered) {
+                if (this.state.game.draw_offerer !== this.state.user.id) {
                     this.setState({draw_offered: true})
                 }
+            } else {
+
+            }
+
+            if (this.state.status[1] === 1) {
+                this.setState({king_check: true})
+            } else {
+                this.setState({king_check: false})
             }
 
             if (this.state.isInvite) {
-                this.openModal("Invite a friend", "Link: http://localhost:9000/" + this.state.queue.link)
+                this.openModal("Invite a friend", "Link: https://chess.0x539.co/" + this.state.queue.link)
                 this.setState({isInvite: false})
             }
 
@@ -181,36 +207,32 @@ class Main extends Component {
             if (this.state.status[2] === 1) {
                 // checkmate
                 this.setState({suggestWin: "checkmate"})
-                await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "checkmate"})
-
-                this.openModal("CheckMate", !this.state.status[0]?"Black" + " won": "White" + " won")
-                this.reset()
+                await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "checkmate"}, this.state.user.token, this.state.user.isUser)
                 
 
             } else if (this.state.status[2] === 2) {
                 // stalemate
                 this.setState({suggestWin: "stalemate"})
-                await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "stalemate"})
-                this.openModal("StaleMate", "Draw by stalemate")
-                this.reset()
+                await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "stalemate"}, this.state.user.token, this.state.user.isUser)
+
                 
             } else if (this.state.status[2] === 3) {
                 // draw
                 this.setState({suggestWin: "draw"})
-                await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "draw"})
-                this.openModal("Draw", "Game was drawn")
-                this.reset()
+                await updateGame(this.state.game.id, {token: this.state.user.token, suggest_win: "draw"}, this.state.user.token, this.state.user.isUser)
+
                 
             }
             
             if (this.state.queue.game_id){
-                const game = await searchGame(this.state.queue.game_id)
+                const game = await searchGame(this.state.queue.game_id, this.state.user.token, this.state.user.isUser)
                 this.setState({game})
                 if (this.state.isQueuing) {
                     this.setState({game})
                     if (game.isPlaying) {
                         this.setState({queue: {}})
                         this.setState({isPlaying: true})
+
                         
                     } else {
                         this.startPlay()
@@ -227,7 +249,10 @@ class Main extends Component {
                     this.setState({game})
                 }  
             } else if (this.state.game.id) {
-                const game = await searchGame(this.state.game.id);
+                const game = await searchGame(this.state.game.id, this.state.user.token, this.state.user.isUser);
+                if (!game.draw_offerer && this.state.idraw_offered) {
+                    this.setState({idraw_offered: false})
+                }
                 if (this.state.game.isStarting) {
                     this.setState({isStarted: true})
                 }
@@ -240,7 +265,7 @@ class Main extends Component {
                 if (this.state.game.winner) {
                     this.setState({isPlaying: false})
                     const title = this.state.game.winner === "black"?"Black Won!":this.state.game.winner === "white"?"White Won!":this.state.game.winner === "draw"?"Draw!":this.state.game.winner === "stalemate"?"StaleMate":this.state.game.winner === "checkmate"?"Checkmate":"";
-                    const description = this.state.startSide === this.state.game.winner?"Congratulations":this.state.game.winner === "draw"?"game withdraw.":this.state.game.winner === "stalemate"?"no moves left":this.state.game.winner === "checkmate"?"checkmated.":"Game Aborted.";
+                    const description = this.state.startSide === this.state.game.winner?"Congratulations":this.state.game.winner === "draw"?"game withdraw.":this.state.game.winner === "stalemate"?"no moves left":this.state.game.winner === "checkmate"?"checkmated.":this.state.game.winner === "abort"?"Game Aborted":"Better Luck next time.";
                     const modal = {
                         title,
                         description,
@@ -278,19 +303,32 @@ class Main extends Component {
 
                             if (!(status[0] === this.state.status[0])) {
 
-                                await updateGame(this.state.game.id, {token: this.state.user.token, approved_move: JSON.stringify(suggested_move)})
+                                await updateGame(this.state.game.id, {token: this.state.user.token, approved_move: JSON.stringify(suggested_move)}, this.state.user.token, this.state.user.isUser)
                             }
                         })
                     }
                 }
                 if (this.state.game.approved_move) {
-                    await GameWasmClient.then((GameWasmClient) => {
+                    await GameWasmClient.then(async (GameWasmClient) => {
                         const approved_move = JSON.parse(this.state.game.approved_move);
                         const status = this.state.GameWasmEngine.update_board(approved_move[0], approved_move[1], this.state.promote);
                         window.status = status
+                        if (!(status[0] === this.state.status[0])) {
+
+                            if (this.state.game.approved_move !== JSON.stringify(this.state.moved_to_pos) && ((this.state.startSide === "black") === (status[0]===1))) {
+                                
+                                await this.setState({moved_to_pos: approved_move[1]})
+                                await this.setState({moved_from_pos: approved_move[0]})
+
+
+                                await this.setState({show_overlay: true})
+                            }
+                        }
                         this.setState({ status: status  })
                         this.setState({ GameWasmClient })
-                        this.setState({ board: this.state.GameWasmClient.get_board() })
+                        let board = await this.state.GameWasmClient.get_board();
+                        this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
+                        
                     })
                 }
             } else {
@@ -300,44 +338,81 @@ class Main extends Component {
             });
         } catch (error) {
             console.log("error here");
+            console.log(this.state.game);
+            console.log(this.state.user);
             console.log(error);
         }
     }
 
+    _suggest_win = async (win) => {
+
+    }
+
     _join_game = async (game) => {
-        const joinedGame = await updateGame(game.id, {user_id: this.state.user.id, isUser: this.state.user.isUser, token: this.state.user.token, create: true})
+        const joinedGame = await updateGame(game.id, {user_id: this.state.user.id, isUser: this.state.user.isUser, token: this.state.user.token, create: true}, this.state.user.token, this.state.user.isUser)
         this.setState({game: joinedGame})
         this.setState({isPlaying: joinedGame.isPlaying})
         this.setState({startSide: this.state.user.id===joinedGame.black_id?"black":"white"})
-        await GameWasmClient.then((GameWasmClient) => {
+        await GameWasmClient.then(async (GameWasmClient) => {
             this.setState({ GameWasmClient })
-            this.setState({ board: this.state.GameWasmClient.get_board() })
+            
+            let board = await this.state.GameWasmClient.get_board();
+            await this.setState({ board:  game.black_id === this.state.user.id?board.reverse():board})
         })
     }
 
     startPlay = async (event) => {
         try {
-
-            const queues = await searchQueue(this.state.user.id);
-            if (queues.length) {
-                const game = await searchGame(queues[0].game_id)
-                await this._join_game(game)
-            } else if (!this.state.isQueuing) {
+            const queues = await searchQueue(this.state.user.id, this.state.user.token, this.state.user.isUser);
+            while (queues.length) {
+                try {
+                    const game = await searchGame(queues[0].game_id, this.state.user.token, this.state.user.isUser)
+                    if (!game.error) {
+                        this._join_game(game)
+                        return;
+                    }
+                    queues.pop()
+                    
+                } catch {
+                }
+            } 
+            if (!this.state.isQueuing) {
+                this.reset()
                 const side = this.state.startSide?this.state.startSide: _.sample(['white', 'black'])
+
                 this.setState({startSide: side})
-                this.setState({queue: await createQueue({ 
+                const queue = await createQueue({ 
                     start_with: side,
                     isUser: this.state.user.isUser,
                     user_id: this.state.user.id,
                     durationGame: this.state.durationGame
-                    }) 
-                });
-                this.setState({isQueuing: true})
+                    }, this.state.user.token, this.state.user.isUser) 
+                
+                if (!queue.error) {
+                    this.setState({queue: queue
+                    });
+                    this.setState({isQueuing: true})
+                    await GameWasmClient.then(async (GameWasmClient) => {
+                        this.setState({ GameWasmClient })
+                        
+                        let board = await this.state.GameWasmClient.get_board();
+                        this.setState({ board:  side==="black"?board.reverse():board})
+                    })
+
+                } else {
+                    window.localStorage.removeItem("user");
+                    window.location = "/"
+                }
             }
         } catch(err) {
             console.log(err);
         }
     }
+
+    cancelPlay = () => {
+        this.reset()
+    }
+
     startInvite = async (event) => {
         try {
             const side = this.state.startSide?this.state.startSide: _.sample(['white', 'black']);
@@ -347,7 +422,7 @@ class Main extends Component {
                 isUser: this.state.user.isUser,
                 user_id: this.state.user.id,
                 durationGame: this.state.durationGame
-                })
+                }, this.state.user.token, this.state.user.isUser)
             });
             this.setState({isInvite: true})
             this.setState({isQueuing: true})
@@ -357,7 +432,7 @@ class Main extends Component {
     }
     gameReisgn = async (event) => {
         try {
-            const game = await updateGame(this.state.game.id, {token: this.state.user.token, resign: true})
+            const game = await updateGame(this.state.game.id, {token: this.state.user.token, resign: true}, this.state.user.token, this.state.user.isUser)
 
         } catch (err) {
             console.log(err);
@@ -365,7 +440,9 @@ class Main extends Component {
     }
     offerDraw = async (event) => {
         try {
-            updateGame(this.state.game.id, {token: this.state.user.token, offer_draw: true})
+            const game = await updateGame(this.state.game.id, {token: this.state.user.token, offer_draw: true}, this.state.user.token, this.state.user.isUser)
+            await this.setState({game})
+            await this.setState({idraw_offered: true})
             
         } catch (err) {
             console.log(err);
@@ -373,6 +450,7 @@ class Main extends Component {
     }
 
     reset = async () => {
+        
         this.setState({
             GameWasmEngine: null,
             isQueuing: false,
@@ -387,24 +465,60 @@ class Main extends Component {
             status: [0,0,0],
             board: [11, 9, 10, 12, 13, 10, 9, 11, 8, 8, 8, 8, 8, 8, 8, 8, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 2, 4, 5, 2, 1, 3],
             suggestWin: null,
+            dots: [],
+            move_turn: true,
+            clicked: null,
+            draw_offered: false,
+            idraw_offered: false,
+            show_overlay: false,
+            moved_to_pos: [0, 0],
+            moved_from_pos: [0, 0],
+            reversed: false
+
         })
-        await GameWasmClient.then((GameWasmClient) => {
+        await GameWasmClient.then(async (GameWasmClient) => {
             GameWasmClient.reset_board()
             this.setState({ GameWasmEngine: GameWasmClient })
-            this.setState({ board: GameWasmClient.get_board() })
+            
+            let board = await GameWasmClient.get_board();
+            this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
             this.setState({ status: [0, 0, 0] })
         })
         
     }
+    
+    declineDraw = async () => {
+        await updateGame(this.state.game.id, {token: this.state.user.token, decline_draw: true}, this.state.user.token, this.state.user.isUser)
+        this.setState({draw_offered: false})
+        
+    }
 
-    clickOverlay = (piece) => {
-        if (piece) {
-            if ((this.state.game.turn) === (this.state.startSide === "black")) {
+    clickOverlay = async (piece) => {
+        this.setState({show_overlay: false})
+        if (this.state.isPlaying) {    
+            if (piece) {
+                if (this.state.game.id && (this.state.game.turn?true:false) === (this.state.startSide === "black")) {
+                    this.setState({clicked: piece})
+                    piece = piece-1;
+                    if (this.state.startSide === "black") {
+
+                        piece = await this.state._arr[piece]
+                    }
+                    let dots = await this.state.GameWasmClient.get_permitted_squares(piece);
+                    if (this.state.startSide === "black") {
+                        dots = dots.map((d) => this.state._arr[d])
+                    }
+                    this.setState({dots})
+                }
+            } else {
                 this.setState({clicked: piece})
+                this.disableOverlay()
             }
-        } else {
-            this.setState({clicked: piece})
         }
+    }
+
+    disableOverlay = () => {
+        this.setState({dots: []})
     }
 
     render () {
@@ -425,13 +539,13 @@ class Main extends Component {
                     <Grid item xs={12} md={5}>
                         <div>
                             <div className="app-game-holder">
-                                <Board clickOverlay={this.clickOverlay} clicked={this.state.clicked} updateBoard={this.updateBoardManually} board={this.state.board} side={this.state.startSide} />
+                                <Board status={this.state.status} king_check={this.state.king_check} disableOverlay={this.disableOverlay} square_dots={this.state.dots} moved_from_pos={this.state.moved_from_pos} moved_to_pos={this.state.moved_to_pos} show_overlay={this.state.show_overlay} clickOverlay={this.clickOverlay} clicked={this.state.clicked} updateBoard={this.updateBoardManually} board={this.state.board} myside={this.state.startSide} _arr={this.state._arr} />
                             </div>
                         </div>
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <Paper className={classes.paper}>
-                            <RightSideBar draw_offered={this.state.draw_offered} userName={this.state.isUser? this.state.user.username: "Guest"+this.state.user.randomNumber} timeRemaining={this.state.timeRemaining} isQueuing={this.state.isQueuing} isPlaying={this.state.isPlaying} startPlaying={this.startPlay} startInvite={this.startInvite} resign={this.gameReisgn} offerDraw={this.offerDraw} />
+                            <RightSideBar cancelPlay={this.cancelPlay} idraw_offered={this.state.idraw_offered} declineDraw={this.declineDraw} draw_offered={this.state.draw_offered} userName={this.state.user.username? this.state.user.username: "Guest"+this.state.user.randomNumber} timeRemaining={this.state.timeRemaining} isQueuing={this.state.isQueuing} isPlaying={this.state.isPlaying} startPlaying={this.startPlay} startInvite={this.startInvite} resign={this.gameReisgn} offerDraw={this.offerDraw} />
                         </Paper>
                     </Grid>
                 </Grid>

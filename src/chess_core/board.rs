@@ -42,14 +42,16 @@ pub struct Board {
     pub turn: bool,
     last_repeated: u8,
     last_black_square: u8,
-    last_white_square: u8
+    last_white_square: u8,
+    black_king_pos: u8,
+    white_king_pos: u8
 }
 
 
 impl Board {
     pub fn new() -> Self {
         let p: Piece = Piece::new(Piece::Empty, Square::NO_SQUARE);
-        Self { table: [p ; 64], castling_ability: 0b1111, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false, bitboard: [0b1111; 64], last_repeated: 0, last_black_square: 64, last_white_square: 64 }
+        Self { table: [p ; 64], castling_ability: 0b1111, en_passent_square: Square::NO_SQUARE, moves_count: 1, half_move_count: 0, turn: false, bitboard: [0b1111; 64], last_repeated: 0, last_black_square: 64, last_white_square: 64, black_king_pos: 4, white_king_pos: 60 }
     }
     /*pub fn print_debug_board_table(&self) {
         println!("{:?}", self.table);
@@ -288,6 +290,11 @@ impl Board {
                 }
             }
 
+            if piece.get_piece() == Piece::BKING {
+                self.black_king_pos = square.get_square_int();
+            } else if piece.get_piece() == Piece::WKING {
+                self.white_king_pos = square.get_square_int();
+            }
 
             self.clear_piece_square(piece);
             self.set_piece_location(piece, square, is_promote, promote);
@@ -303,6 +310,14 @@ impl Board {
             return true;
         }
         false
+    }
+
+    pub fn get_black_king(&self) -> u8 {
+        self.black_king_pos
+    }
+
+    pub fn get_white_king(&self) -> u8 {
+        self.white_king_pos
     }
 
     pub fn simulate_clear_piece_square(&mut self, piece:Piece) {

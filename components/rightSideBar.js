@@ -8,6 +8,7 @@ import {ReactComponent as SvgPlay} from "../themes/svgs/chess2.svg"
 import IniteImage from "../themes/svgs/handshake.png"
 import ResignImage from "../themes/svgs/flag.png"
 import AgreementImage from "../themes/svgs/agreement.png"
+import Exit from '@material-ui/icons/ExitToApp'
 
 import AdTest from "../themes/GoogleAd.jpg"
 import { Fragment, useState } from "react";
@@ -19,7 +20,7 @@ const useStyle = makeStyles((theme) => ({
     }
 }));
 
-const RightSideBar = ({draw_offerer, isQueuing, isPlaying, startPlaying, startInvite, resign, offerDraw, timeRemaining, userName}) => {
+const RightSideBar = ({cancelPlay, idraw_offered, draw_offered, declineDraw, isQueuing, isPlaying, startPlaying, startInvite, resign, offerDraw, timeRemaining, userName}) => {
 
 
     const classes = useStyle();
@@ -35,25 +36,30 @@ const RightSideBar = ({draw_offerer, isQueuing, isPlaying, startPlaying, startIn
                     <img src={AdTest} height={220} />
                 </Grid>{isPlaying?<Fragment>
                 <Grid item xs={12}>
-                    <LargeButton onClick={resign} placeHolder={"Resign"} color={"primary"} Icon={<img src={ResignImage} />} />
+                    <LargeButton fullWidth onClick={resign} placeHolder={"Resign"} color={"primary"} Icon={<img src={ResignImage} />} />
                 </Grid>
                 <Grid item xs={12}>
-                    {draw_offerer?<Fragment><LargeButton onClick={offerDraw} placeHolder={"Accept Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} /><LargeButton onClick={offerDraw} placeHolder={"Accept Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} /></Fragment>:<LargeButton onClick={offerDraw} placeHolder={"Offer Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} />}
+                    {draw_offered?<Grid container direction="row"
+            justify="space-between"
+            alignItems="flex-start"><Grid item><LargeButton onClick={offerDraw} placeHolder={"Accept Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} /></Grid><Grid item><LargeButton onClick={declineDraw} placeHolder={"Decline Draw"} color={"disabled"} Icon={<Exit />} /></Grid></Grid>:<LargeButton disable={idraw_offered} fullWidth onClick={offerDraw} placeHolder={"Offer Draw"} color={"secondary"} Icon={<img src={AgreementImage} />} />}
                 </Grid>
             </Fragment>
-            :isQueuing?<Grid container style={{height: 400}} height={"400"} direction="row"
+            :isQueuing?<Grid container style={{height: 400}} height={"400"} direction="column"
             justify="center"
             alignItems="center"
             wrap="nowrap" item xs={12}>
-                <Grid item>
+                <Grid item xs={1}>
                     <CircularProgress/>
+                </Grid>
+                <Grid item xs={4}>
+                    <LargeButton fullWidth onClick={cancelPlay} placeHolder={"Cancel"} color={"disabled"} Icon={<Exit/>} />
                 </Grid>
             </Grid>:<Fragment>
                 <Grid item xs={12}>
-                    <LargeButton onClick={startInvite} placeHolder={"Invite"} color={"primary"} Icon={<img src={IniteImage} />} />
+                    <LargeButton fullWidth onClick={startInvite} placeHolder={"Invite"} color={"primary"} Icon={<img src={IniteImage} />} />
                 </Grid>
                 <Grid item xs={12}>
-                    <LargeButton onClick={startPlaying} placeHolder={"Play"} color={"secondary"} Icon={<SvgPlay/>} />
+                    <LargeButton fullWidth onClick={startPlaying} placeHolder={"Play"} color={"secondary"} Icon={<SvgPlay/>} />
                 </Grid>
                 </Fragment>
             }
