@@ -281,7 +281,9 @@ class Main extends Component {
                             this.setState({oponent: user.username})
                         } else {
                             const guest = await getGuest(this.state.game.black_id)
-                            this.setState({oponent: "Guest"+guest.randomNumber})
+                            if (guest.error) {
+                                alert("opponent user doesn't exist")
+                            } else this.setState({oponent: "Guest"+guest.randomNumber})
                         }
                     } else if (this.state.game.black_id === this.state.user.id) {
                         if (this.state.game.isWhiteUser) {
@@ -289,7 +291,9 @@ class Main extends Component {
                             this.setState({oponent: user.username})
                         } else {
                             const guest = await getGuest(this.state.game.white_id)
-                            this.setState({oponent: "Guest"+guest.randomNumber})
+                            if (guest.error) {
+                                alert("opponent user doesn't exist")
+                            } else this.setState({oponent: "Guest"+guest.randomNumber})
                         }
                     }
                 }
@@ -338,6 +342,7 @@ class Main extends Component {
         } catch (error) {
             console.log("error here");
             console.log(error);
+            window.localStorage.removeItem("user")
         }
     }
 
@@ -403,6 +408,8 @@ class Main extends Component {
             }
         } catch(err) {
             console.log(err);
+            window.localStorage.removeItem("user")
+
         }
     }
 
@@ -425,6 +432,7 @@ class Main extends Component {
             this.setState({isQueuing: true})
         } catch (err) {
             console.log(err);
+            window.localStorage.removeItem("user")
         }
     }
     gameReisgn = async (event) => {
@@ -433,6 +441,8 @@ class Main extends Component {
 
         } catch (err) {
             console.log(err);
+            window.localStorage.removeItem("user")
+
         }
     }
     offerDraw = async (event) => {
@@ -443,6 +453,8 @@ class Main extends Component {
             
         } catch (err) {
             console.log(err);
+            window.localStorage.removeItem("user")
+
         }
     }
 

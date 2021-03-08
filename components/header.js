@@ -18,7 +18,7 @@ import logo from "../logo.png";
 import {ReactComponent as SvgPlay} from "../themes/svgs/chess2.svg"
 import {ReactComponent as SvgCommunity} from "../themes/svgs/chesspieces.svg"
 import ImgExplorer from "../themes/svgs/website.png"
-import { createGuest, getMe, login, signUp } from '../utils/apiStrapi';
+import { createGuest, getGuest, getMe, login, signUp } from '../utils/apiStrapi';
 import Exit from '@material-ui/icons/ExitToApp'
 
 
@@ -151,6 +151,11 @@ class Header extends Component {
                 this.props.readyContent()
                 return
               } else {
+                const guest = getGuest(u.id);
+                if (guest.error) {
+                  window.localStorage.removeItem("user")
+                  window.location = "/"
+                }
               }
   
             } catch {
