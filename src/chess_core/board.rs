@@ -204,8 +204,9 @@ impl Board {
     }
 
     pub fn move_piece(&mut self, piece: Piece, square: Square, promote: u8) -> bool {
-
-        if piece.get_piece() == (Piece::WKING | if self.turn { 0b1000 } else {0}) && piece.square.get_square_int() == (Square::E8.get_square_int() + if self.turn {0} else {56}) {
+        let mut  test_board = self.clone();
+        test_board.set_piece_location(piece, square, false, 0);
+        if !test_board.is_incheck() && piece.get_piece() == (Piece::WKING | if self.turn { 0b1000 } else {0}) && piece.square.get_square_int() == (Square::E8.get_square_int() + if self.turn {0} else {56}) {
             if square.get_square_int() == Square::C8.get_square_int() + if self.turn {0} else {56} {
                 if 1 << if self.turn {2} else {0} & self.castling_ability != 0 {
                     if !Perms.is_king_in_check(self) {
