@@ -151,8 +151,6 @@ class Main extends Component {
     updateBoardManually = async (square, square_to_go) => {
         try {
             if (this.state.isPlaying) {
-                console.log(((this.state.startSide === "black") === this.state.GameWasmEngine.get_side())?"":"problem here");
-                console.log(await this.state.GameWasmEngine.get_board());
                 if ((this.state.startSide === "black") === this.state.GameWasmEngine.get_side()) {
                     await GameWasmClient.then(async (GameWasmClient) => {
                         const status = this.state.GameWasmEngine.update_clone_board(square, square_to_go, this.state.promote);
@@ -210,13 +208,6 @@ class Main extends Component {
 
     async tick() {
         try {
-
-            if (!this.state.reversed && this.state.startSide === "black") {
-                this.setState((state, props) => {
-                    return {board: state.board.reverse()}
-                })
-                this.setState({reversed: true})
-            }
 
             if (this.state.game.draw_offerer && !this.state.draw_offered) {
                 if (this.state.game.draw_offerer !== this.state.user.id) {
@@ -336,7 +327,6 @@ class Main extends Component {
                     }
                 }
                 if (this.state.game.suggested_move) {
-                    console.log((this.state.startSide === "black") !== this.state.GameWasmEngine.get_side());
                     if ((this.state.startSide === "black") !== this.state.GameWasmEngine.get_side()) {
 
                         await GameWasmClient.then(async (GameWasmClient) => {
@@ -544,8 +534,6 @@ class Main extends Component {
 
     clickOverlay = async (piece) => {
         this.setState({show_overlay: false})
-        console.log(this.state.startSide);
-        console.log(await this.state.GameWasmEngine.get_side());
         // console.log(this.state.queue);
         // console.log(this.state.GameWasmEngine?.get_side());
         // console.log(this.state.board);

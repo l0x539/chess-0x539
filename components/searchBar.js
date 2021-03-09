@@ -82,7 +82,7 @@ export default ({themeColor}) => {
                     </div>
                     <InputBase
                     className={classes.inputBase}
-                        placeholder="Search for a delivery service from here"
+                        placeholder="Search is disabled for now"
                     />
                 </Grid>
             </ThemeProvider>
