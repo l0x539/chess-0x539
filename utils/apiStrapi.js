@@ -18,6 +18,13 @@ export const getGuest = async (user_id) => {
         })
 }
 
+export const searchMoves = async (game_id) => {
+  return await fetch(URL + "/moves?_where&game_id=" + game_id, {
+    }).then(res => {
+          return res.json();
+      })
+}
+
 export const getUser = async (user_id, userToken) => {
     return await fetch(URL + "/users/" + user_id, {
         headers: {

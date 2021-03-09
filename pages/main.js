@@ -4,7 +4,7 @@ import Board from "../components/board";
 import LeftSideBar from "../components/leftSideBar";
 import RightSideBar from "../components/rightSideBar";
 import GameInfoModal from "../components/gameInfoModal";
-import { searchQueue, updateGame, searchGame, createQueue, getMe, getGuest, getUser, createInvite, findInvite } from "../utils/apiStrapi";
+import { searchQueue, updateGame, searchMoves, searchGame, createQueue, getMe, getGuest, getUser, createInvite, findInvite } from "../utils/apiStrapi";
 import PropTypes from 'prop-types';
 import { Component } from "react";
 import GameWasmClient from "../chess-core/chess";
@@ -83,11 +83,46 @@ class Main extends Component {
             await GameWasmClient.then(async (GameWasmClient) => {
                 this.setState({ GameWasmEngine: GameWasmClient })
                 let board = await GameWasmClient.get_board();
-                this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
-                this.setState({ status: this.state.status })
+                await this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
+                await this.setState({ status: this.state.status })
             })
 
+            const { match: { params } } = this.props;
+
+            if (!params.invite) {
+                if (window.localStorage.last_game) {
+                    const game = await searchGame(window.localStorage.last_game, this.state.user.token, this.state.user.isUser)
+                    if (!game.winner && game.isStarting) {
+                        const moves = await searchMoves(window.localStorage.last_game)
+                        this.setState({
+                            isPlaying: game.isPlaying,
+                            isStarted: game.isStarted,
+                            startSide: game.black_id === _user.id?"black":"white",
+                            game
+                        })
+
+                        
+                        
+                        moves.map(async (move, i) => {
+                            await GameWasmClient.then(async (GameWasmClient) => {
+
+                                await this.setState({GameWasmEngine: GameWasmClient })
+                                const _move = JSON.parse(move.move)
+                                const status = this.state.GameWasmEngine.update_board(_move[0], _move[1], this.state.promote);
+                                window.status = status
+                                await this.setState({ status: status  })
+                                // await this.setState({GameWasmEngine: GameWasmClient })
+
+                                let board = await this.state.GameWasmEngine.get_board();
+                                this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
+                            })
+                        })
+                    }
+                }
+            }
+                
             await this.joinInvite()
+            
     
         } catch (err) {
             console.log(err);
@@ -107,7 +142,7 @@ class Main extends Component {
             const queues = await findInvite(params.invite);
             if (queues.length > 0) {
                 this.setState({queue: queues[0]})
-                const game = await searchGame(queues[0].game_id, )
+                const game = await searchGame(queues[0].game_id,this.state.user.token, this.state.user.isUser)
                 await this._join_game(game)    
             }
         }
@@ -116,6 +151,8 @@ class Main extends Component {
     updateBoardManually = async (square, square_to_go) => {
         try {
             if (this.state.isPlaying) {
+                console.log(((this.state.startSide === "black") === this.state.GameWasmEngine.get_side())?"":"problem here");
+                console.log(await this.state.GameWasmEngine.get_board());
                 if ((this.state.startSide === "black") === this.state.GameWasmEngine.get_side()) {
                     await GameWasmClient.then(async (GameWasmClient) => {
                         const status = this.state.GameWasmEngine.update_clone_board(square, square_to_go, this.state.promote);
@@ -126,8 +163,8 @@ class Main extends Component {
                             const status = this.state.GameWasmEngine.update_board(square, square_to_go, this.state.promote);
                             window.status = status
                             await this.setState({ status: status  })
-                            await this.setState({GameWasmClient: GameWasmClient })
-                            let board = await this.state.GameWasmClient.get_board();
+                            // await this.setState({GameWasmEngine: GameWasmClient })
+                            let board = await this.state.GameWasmEngine.get_board();
                             this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
 
                             if (!this.state.isStarted) this.startGame();
@@ -248,6 +285,7 @@ class Main extends Component {
                     this.setState({game})
                 }  
             } else if (this.state.game.id) {
+                window.localStorage.last_game = this.state.game.id
                 const game = await searchGame(this.state.game.id, this.state.user.token, this.state.user.isUser);
                 if (!game.draw_offerer && this.state.idraw_offered) {
                     this.setState({idraw_offered: false})
@@ -258,8 +296,8 @@ class Main extends Component {
                 if (this.state.isPlaying) {
                     this.setState({isQueuing: false})
                     this.setState({game})
-                    this.setState({timeRemaining: this.state.startSide === "black"?this.state.game.black_time_remaining:this.state.game.white_time_remaining})
-                    this.setState({timeRemainingOpp: this.state.startSide === "black"?this.state.game.white_time_remaining:this.state.game.black_time_remaining})
+                    this.setState({timeRemainingOpp: this.state.startSide === "black"?this.state.game.black_time_remaining:this.state.game.white_time_remaining})
+                    this.setState({timeRemaining: this.state.startSide === "black"?this.state.game.white_time_remaining:this.state.game.black_time_remaining})
                 }
                 if (this.state.game.winner) {
                     this.setState({isPlaying: false})
@@ -298,6 +336,7 @@ class Main extends Component {
                     }
                 }
                 if (this.state.game.suggested_move) {
+                    console.log((this.state.startSide === "black") !== this.state.GameWasmEngine.get_side());
                     if ((this.state.startSide === "black") !== this.state.GameWasmEngine.get_side()) {
 
                         await GameWasmClient.then(async (GameWasmClient) => {
@@ -311,7 +350,7 @@ class Main extends Component {
                         })
                     }
                 }
-                if (this.state.game.approved_move) {
+                if (this.state.game.approved_move) { // Bug
                     await GameWasmClient.then(async (GameWasmClient) => {
                         const approved_move = JSON.parse(this.state.game.approved_move);
                         const status = this.state.GameWasmEngine.update_board(approved_move[0], approved_move[1], this.state.promote);
@@ -328,8 +367,8 @@ class Main extends Component {
                             }
                         }
                         this.setState({ status: status  })
-                        this.setState({ GameWasmClient })
-                        let board = await this.state.GameWasmClient.get_board();
+                        this.setState({ GameWasmEngine: this.state.GameWasmEngine }) // bug here
+                        let board = await this.state.GameWasmEngine.get_board();
                         this.setState({ board:  this.state.game.black_id === this.state.user.id?board.reverse():board})
                         
                     })
@@ -340,9 +379,8 @@ class Main extends Component {
                 date: new Date(),
             });
         } catch (error) {
-            console.log("error here");
-            console.log(error);
-            window.localStorage.removeItem("user")
+            // window.localStorage.removeItem("user")
+            window.location = "/"
         }
     }
 
@@ -358,8 +396,8 @@ class Main extends Component {
         await GameWasmClient.then(async (GameWasmClient) => {
             this.setState({ GameWasmClient })
             
-            let board = await this.state.GameWasmClient.get_board();
-            await this.setState({ board:  game.black_id === this.state.user.id?board.reverse():board})
+            let board = await this.state.GameWasmEngine.get_board();
+            await this.setState({ board:  joinedGame.black_id === this.state.user.id?board.reverse():board})
         })
     }
 
@@ -397,7 +435,7 @@ class Main extends Component {
                     await GameWasmClient.then(async (GameWasmClient) => {
                         this.setState({ GameWasmClient })
                         
-                        let board = await this.state.GameWasmClient.get_board();
+                        let board = await this.state.GameWasmEngine.get_board();
                         this.setState({ board:  side==="black"?board.reverse():board})
                     })
 
@@ -469,7 +507,7 @@ class Main extends Component {
             oponent: false,
             isPlaying: false,
             isStarted: false,
-            startSide: null,
+            startSide: "white",
             promote: 0,
             status: [0,0,0],
             board: [11, 9, 10, 12, 13, 10, 9, 11, 8, 8, 8, 8, 8, 8, 8, 8, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 2, 4, 5, 2, 1, 3],
@@ -494,6 +532,8 @@ class Main extends Component {
             this.setState({ status: [0, 0, 0] })
         })
         
+        window.localStorage.removeItem("last_game")
+        
     }
     
     declineDraw = async () => {
@@ -504,6 +544,15 @@ class Main extends Component {
 
     clickOverlay = async (piece) => {
         this.setState({show_overlay: false})
+        console.log(this.state.startSide);
+        console.log(await this.state.GameWasmEngine.get_side());
+        // console.log(this.state.queue);
+        // console.log(this.state.GameWasmEngine?.get_side());
+        // console.log(this.state.board);
+        // console.log(this.state.GameWasmEngine.get_board? this.state.GameWasmEngine.get_board():"no board");
+
+
+
         if (this.state.isPlaying) {    
             if (piece) {
                 if (this.state.game.id && (this.state.game.turn?true:false) === (this.state.startSide === "black")) {
@@ -513,7 +562,7 @@ class Main extends Component {
 
                         piece = await this.state._arr[piece]
                     }
-                    let dots = await this.state.GameWasmClient.get_permitted_squares(piece);
+                    let dots = await this.state.GameWasmEngine.get_permitted_squares(piece);
                     if (this.state.startSide === "black") {
                         dots = dots.map((d) => this.state._arr[d])
                     }
@@ -542,7 +591,7 @@ class Main extends Component {
                 >
                     <Grid item xs={12} md={2}>
                         <Paper className={classes.paper}>
-                            <LeftSideBar userName={this.state.oponent?this.state.oponent:"Opponent"} timeRemaining={this.state.startSide === "black"? this.state.timeRemaining:this.state.timeRemainingOpp} />
+                            <LeftSideBar userName={this.state.oponent?this.state.oponent:"Opponent"} timeRemaining={this.state.timeRemainingOpp} />
                         </Paper>
                     </Grid>
                     <Grid item xs={12} md={5}>
@@ -554,7 +603,7 @@ class Main extends Component {
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <Paper className={classes.paper}>
-                            <RightSideBar cancelPlay={this.cancelPlay} idraw_offered={this.state.idraw_offered} declineDraw={this.declineDraw} draw_offered={this.state.draw_offered} userName={this.state.user.username? this.state.user.username: "Guest"+this.state.user.randomNumber} timeRemaining={this.state.startSide === "black"?this.state.timeRemainingOpp: this.state.timeRemaining} isQueuing={this.state.isQueuing} isPlaying={this.state.isPlaying} startPlaying={this.startPlay} startInvite={this.startInvite} resign={this.gameReisgn} offerDraw={this.offerDraw} />
+                            <RightSideBar cancelPlay={this.cancelPlay} idraw_offered={this.state.idraw_offered} declineDraw={this.declineDraw} draw_offered={this.state.draw_offered} userName={this.state.user.username? this.state.user.username: "Guest"+this.state.user.randomNumber} timeRemaining={this.state.timeRemaining} isQueuing={this.state.isQueuing} isPlaying={this.state.isPlaying} startPlaying={this.startPlay} startInvite={this.startInvite} resign={this.gameReisgn} offerDraw={this.offerDraw} />
                         </Paper>
                     </Grid>
                 </Grid>
