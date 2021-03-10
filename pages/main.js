@@ -23,6 +23,9 @@ const styles = (theme) => ({
         width: "100%",
         height: "100%",
         backgroundColor: "#FCF5E5"
+    },
+    appGameHolder: {
+        position: "relative"
     }
 });
 
@@ -584,7 +587,7 @@ class Main extends Component {
                     </Grid>
                     <Grid item xs={12} md={5}>
                         <div>
-                            <div className="app-game-holder">
+                            <div className={classes.appGameHolder}>
                                 <Board status={this.state.status} king_check={this.state.king_check} disableOverlay={this.disableOverlay} square_dots={this.state.dots} moved_from_pos={this.state.moved_from_pos} moved_to_pos={this.state.moved_to_pos} show_overlay={this.state.show_overlay} clickOverlay={this.clickOverlay} clicked={this.state.clicked} updateBoard={this.updateBoardManually} board={this.state.board} myside={this.state.startSide} _arr={this.state._arr} />
                             </div>
                         </div>

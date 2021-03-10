@@ -2,6 +2,7 @@ import { Component, Fragment } from 'react';
 import { Overlay } from "./overlay";
 import { MergePieces } from './mergePieces';
 
+
 class BoardHolder extends Component {
     constructor(props) {
         super(props)
@@ -15,14 +16,12 @@ class BoardHolder extends Component {
     } 
 
     componentDidMount() {
-        const _board = document.getElementById("board-blank");
-        const board_width = _board?.clientWidth;
-        const board_height = _board?.clientHeight;
-        this.setState({ board_width, board_height });
+        
     }
 
-    fixBoard = async () => {
+    componentDidMount () {
         const _board = document.getElementById("board-blank");
+        console.log("fix", _board?.style);
         const board_width = _board?.clientWidth;
         const board_height = _board?.clientHeight;
         this.setState({ board_width, board_height });
@@ -30,7 +29,9 @@ class BoardHolder extends Component {
 
 
     render () {
-        let {_arr, status, king_check, moved_from_pos, moved_to_pos, show_overlay, square_dots, updateBoard} = this.props;
+        let {boardHolder, _arr, status, king_check, moved_from_pos, moved_to_pos, show_overlay, square_dots, updateBoard} = this.props;
+
+
         // if (side) {
         //     if (side === "black") {
         //         //_board = board.reverse();
@@ -43,7 +44,7 @@ class BoardHolder extends Component {
             king_pos = _arr[king_pos]
         }
 
-        return <div className="boardHolder" id="board-blank" onChange={this.fixBoard} onContextMenu={(e)=> e.preventDefault()}>
+        return <div className={boardHolder} id="board-blank" onContextMenu={(e)=> e.preventDefault()}>
                 {this.state.board_height?<MergePieces {...this.props} board_height={this.state.board_height} board_width={this.state.board_width} />:"Loading"}
                 {show_overlay?
                 <Fragment>
@@ -61,6 +62,7 @@ class BoardHolder extends Component {
             </div>
     }
 }
+
 
 
 export default BoardHolder;

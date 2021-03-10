@@ -38,13 +38,11 @@
   cursor: pointer;
   cursor: grab;
   cursor: -webkit-grab;
-  height: 12.5%;
   left: 0;
   overflow: hidden;
   position: absolute;
   top: 0;
   touch-action: none;
-  width: 12.5%;
   will-change: transform;
   z-index: 2;
 }

@@ -47,7 +47,10 @@ export default ({themeColor}) => {
             "&:hover": {
                 boxShadow: "0px 6px 4px rgba(0, 0, 0, 0.25)",
                 marginTop: -4,
-            }
+            },
+            [theme.breakpoints.down('sm')]: {
+                display: "none"
+              },
         },
         iconAdjust: {
             // marginTop: 4,

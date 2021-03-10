@@ -49,6 +49,9 @@ const styles = (theme) => ({
     },
     menuButton: {
       marginRight: 36,
+      [theme.breakpoints.down('sm')]: {
+        display: "none"
+      },
     },
     hide: {
       display: 'none',
@@ -57,6 +60,10 @@ const styles = (theme) => ({
       width: drawerWidth,
       flexShrink: 0,
       whiteSpace: 'nowrap',
+      [theme.breakpoints.down('xs')]: {
+        display: "none"
+      },
+
     },
     drawerOpen: {
       width: drawerWidth,
@@ -91,6 +98,11 @@ const styles = (theme) => ({
     content: {
       flexGrow: 1,
       padding: theme.spacing(3),
+    },
+    hrefAppbar: {
+      [theme.breakpoints.down('sm')]: {
+        display: "none"
+      },
     },
     joinButton: {
         backgroundColor: "#E66A82",
@@ -321,9 +333,9 @@ class Header extends Component {
                             </Grid>
                             <div className={"left"}>
                             </div>
-                            <Grid item><Button onClick={this.goToMain} to="/" color="secondary">Home</Button></Grid>
-                            <Grid item><Button onClick={this.goToCommunity} to="/community" color="secondary">Community</Button></Grid>
-                            <Grid item><Button onClick={this.goToExplorer} to="/explorer" color="secondary">Explorer</Button></Grid>
+                            <Grid item><Button className={classes.hrefAppbar} onClick={this.goToMain} to="/" color="secondary">Home</Button></Grid>
+                            <Grid item><Button className={classes.hrefAppbar}  onClick={this.goToCommunity} to="/community" color="secondary">Community</Button></Grid>
+                            <Grid item><Button className={classes.hrefAppbar} onClick={this.goToExplorer} to="/explorer" color="secondary">Explorer</Button></Grid>
                             <Grid item>
                                 <Grid container
                                 direction="row"

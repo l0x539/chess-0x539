@@ -60,16 +60,16 @@ class Piece extends Component {
 
 
     render () {
-        const { piece_type, square, board_width, board_height, clicked, show_overlay } = this.props;
+        const { piece_type, square, board_width, board_height, clicked, show_overlay, position } = this.props;
         return <Fragment>
                 <Draggable
                 bounds="parent"
                 onDrag={this.handleDrag}
                 onStop={this.stopDragging}
-                position={ this.state.piece_position }
+                position={ this.state.piece_position?this.state.piece_position:position }
                 onStart={this.startDrag}
                 >
-                    <div className={"piece p" + piece_type + " sq-" + square + " " + (this.state.isDragging?"dragging":"")}></div>
+                    <div style={{height: board_height/8, width: board_width/8}} className={"piece p" + piece_type + " sq-" + square + " " + (this.state.isDragging?"dragging":"")}></div>
                 </Draggable>
                 {(clicked===square+1 && !show_overlay)?<Overlay board_height={board_height} board_width={board_width} className={"clicked"} overlay_position={this.state.overlay_position} />:""}
             </Fragment>
