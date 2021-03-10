@@ -55,7 +55,7 @@ export const searchQueue = async (user_id, token , isUser) => {
       }
     }
 
-    return await fetch(URL + "/queues?_where[0][created_at_gte]=120&_sort=created_at:ASC&user_id_ne="+user_id, data).then(res => {
+    return await fetch(URL + "/queues?_where[0][created_at_gte]="+(Date.now()-60000)+"&_sort=created_at:ASC&user_id_ne="+user_id, data).then(res => {
             return res.json();
         })
 }

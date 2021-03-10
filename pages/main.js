@@ -70,7 +70,7 @@ class Main extends Component {
         try {
             this.timerID = setInterval(
               () => this.tick(),
-                500
+                400
             );
             const _user = window.localStorage.user?JSON.parse(window.localStorage.user):{}
             const me = await getMe(_user.metoken)
@@ -257,15 +257,13 @@ class Main extends Component {
             
             if (this.state.queue.game_id){
                 const game = await searchGame(this.state.queue.game_id, this.state.user.token, this.state.user.isUser)
-                this.setState({game})
+                await this.setState({game})
                 if (this.state.isQueuing) {
                     this.setState({game})
                     if (game.isPlaying) {
                         this.setState({queue: {}})
                         this.setState({isPlaying: true})
                         
-                    } else {
-                        this.startPlay()
                     }
                 } else if (this.state.invite) {
                     this.setState({game})
@@ -296,15 +294,22 @@ class Main extends Component {
                 if (this.state.game.winner) {
                     this.setState({isPlaying: false})
                     const title = this.state.game.winner === "black"?"Black Won!":this.state.game.winner === "white"?"White Won!":this.state.game.winner === "draw"?"Draw!":this.state.game.winner === "stalemate"?"StaleMate":this.state.game.winner === "checkmate"?"Checkmate":"";
-                    const description = this.state.startSide === this.state.game.winner?"Congratulations":this.state.game.winner === "draw"?"game withdraw.":this.state.game.winner === "stalemate"?"no moves left":this.state.game.winner === "checkmate"?"checkmated.":this.state.game.winner === "abort"?"Game Aborted":"Better Luck next time.";
-                    const modal = {
-                        title,
-                        description,
-                        isopen: true,
+                    if (this.state.game.winner === "abortq") {
+                        this.reset()
+                        this.startPlay()
+                        return
+                    } else {
+                        const description = this.state.startSide === this.state.game.winner?"Congratulations":this.state.game.winner === "draw"?"game withdraw.":this.state.game.winner === "stalemate"?"no moves left":this.state.game.winner === "checkmate"?"checkmated.":this.state.game.winner === "abort"?"Game Aborted":"Better Luck next time.";
+                        const modal = {
+                            title,
+                            description,
+                            isopen: true,
+                        }
+                        this.setState({modal})
+                        console.log("winner: ", this.state.game.winner)
+                        this.reset()
+                        return
                     }
-                    this.setState({modal})
-                    console.log("winner: ", this.state.game.winner)
-                    this.reset()
                 }
                 if (!this.state.oponent) {
                     if (this.state.game.white_id === this.state.user.id) {
@@ -400,7 +405,8 @@ class Main extends Component {
             while (queues.length) {
                 try {
                     const game = await searchGame(queues[0].game_id, this.state.user.token, this.state.user.isUser)
-                    if (!game.error) {
+                    console.log(game);
+                    if (!game.error && !game.winner) {
                         this._join_game(game)
                         return;
                     }
