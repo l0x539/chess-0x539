@@ -44,7 +44,7 @@ class Main extends Component {
             oponent: false,
             isPlaying: false,
             isStarted: false,
-            startSide: "white",
+            startSide: null,
             promote: 0,
             status: [0,0,0,0],
             board: [11, 9, 10, 12, 13, 10, 9, 11, 8, 8, 8, 8, 8, 8, 8, 8, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 2, 4, 5, 2, 1, 3],
@@ -160,7 +160,7 @@ class Main extends Component {
 
                         if (!(status[0] === this.state.status[0])) {
                             this.clickOverlay(null)
-                            updateGame(this.state.game.id, {token: this.state.user.token, suggested_move: JSON.stringify([square, square_to_go])})
+                            updateGame(this.state.game.id, {token: this.state.user.token, suggested_move: JSON.stringify([square, square_to_go, (this.state.startSide === "black")])})
                             const status = this.state.GameWasmEngine.update_board(square, square_to_go, this.state.promote);
                             window.status = status
                             await this.setState({ status: status  })
@@ -378,7 +378,9 @@ class Main extends Component {
             });
         } catch (error) {
             // window.localStorage.removeItem("user")
-            window.location = "/"
+            console.log(error);
+            console.log("change loc");
+            // window.location = "/"
         }
     }
 
@@ -578,6 +580,12 @@ class Main extends Component {
 
     render () {
         const { classes } = this.props;
+
+        let king_pos = this.state.status[0] === 1?this.state.status[3]:this.state.status[4]
+        if (this.state.startSide === "black") {
+            king_pos = this.state._arr[king_pos]
+
+        }
         return <div className={classes.container}>
             <GameInfoModal closeModal={this.closeModal} isopen={this.state.modal.isopen} Title={this.state.modal.title} Description={this.state.modal.description} />
             <Container>
@@ -594,7 +602,7 @@ class Main extends Component {
                     <Grid item xs={12} md={5}>
                         <div>
                             <div className={classes.appGameHolder}>
-                                <Board status={this.state.status} king_check={this.state.king_check} disableOverlay={this.disableOverlay} square_dots={this.state.dots} moved_from_pos={this.state.moved_from_pos} moved_to_pos={this.state.moved_to_pos} show_overlay={this.state.show_overlay} clickOverlay={this.clickOverlay} clicked={this.state.clicked} updateBoard={this.updateBoardManually} board={this.state.board} myside={this.state.startSide} _arr={this.state._arr} />
+                                <Board king_pos={king_pos} status={this.state.status} king_check={this.state.king_check} disableOverlay={this.disableOverlay} square_dots={this.state.dots} moved_from_pos={this.state.moved_from_pos} moved_to_pos={this.state.moved_to_pos} show_overlay={this.state.show_overlay} clickOverlay={this.clickOverlay} clicked={this.state.clicked} updateBoard={this.updateBoardManually} board={this.state.board} myside={this.state.startSide} _arr={this.state._arr} />
                             </div>
                         </div>
                     </Grid>

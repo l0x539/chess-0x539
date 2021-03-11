@@ -219,6 +219,12 @@ impl Board {
                             self.clear_piece_square(rook);
                             self.set_piece_location(rook, self.table[(Square::D8.get_square_int() + if self.turn {0} else {56}) as usize].square, false, 0);
                             self.disable_castling();
+                            if piece.get_piece() == Piece::BKING {
+                                self.black_king_pos = square.get_square_int();
+                            } else if piece.get_piece() == Piece::WKING {
+                
+                                self.white_king_pos = square.get_square_int();
+                            }
                             return true;
                         }
                     }
@@ -237,6 +243,12 @@ impl Board {
                             self.set_piece_location(rook, self.table[(Square::F8.get_square_int() + if self.turn {0} else {56}) as usize].square, false, 0);
                             self.set_castling_ability(self.castling_ability & ((0b11 << if self.turn {2} else {0}) ^ 0b1111 ));
                             self.disable_castling();
+                            if piece.get_piece() == Piece::BKING {
+                                self.black_king_pos = square.get_square_int();
+                            } else if piece.get_piece() == Piece::WKING {
+                
+                                self.white_king_pos = square.get_square_int();
+                            }
                             return true;                            
                         }
                     }
@@ -294,6 +306,7 @@ impl Board {
             if piece.get_piece() == Piece::BKING {
                 self.black_king_pos = square.get_square_int();
             } else if piece.get_piece() == Piece::WKING {
+
                 self.white_king_pos = square.get_square_int();
             }
 

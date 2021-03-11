@@ -138,6 +138,7 @@ class Header extends Component {
             open: false,
         }
     }
+    
 
     handleDrawerOpen = () => {
         this.setState({open: true});
@@ -148,6 +149,7 @@ class Header extends Component {
     };
 
     async componentDidMount () {
+      
         try {
           if (window.localStorage.user) {
             try {

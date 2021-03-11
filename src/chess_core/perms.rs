@@ -21,6 +21,7 @@ impl Perms {
             }
         }
         let default_squares = self.get_piece_default_permitterd_squares(piece);
+        if !default_squares.contains(&square.get_square_int()) { return false; }
         let ray = draw_ray(piece.square.get_square_int(), square.get_square_int());
         let mut t = false;
         for r in ray {

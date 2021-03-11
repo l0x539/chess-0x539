@@ -24,7 +24,7 @@ class BoardHolder extends Component {
 
 
     render () {
-        let {boardHolder, _arr, status, king_check, moved_from_pos, moved_to_pos, show_overlay, square_dots, updateBoard} = this.props;
+        let {king_pos, boardHolder, _arr, status, king_check, moved_from_pos, moved_to_pos, show_overlay, square_dots, updateBoard} = this.props;
 
 
         // if (side) {
@@ -35,11 +35,10 @@ class BoardHolder extends Component {
         const _board = document.getElementById("board-blank");
         const board_width = _board?.clientWidth;
         const board_height = _board?.clientHeight;
-        let king_pos = status[0] === 1? status[3]:status[4];
         if (this.props.myside === "black") {
             moved_from_pos = _arr[moved_from_pos]
             moved_to_pos = _arr[moved_to_pos]
-            king_pos = _arr[king_pos]
+            // king_pos = _arr[king_pos]
         }
 
         return <div className={boardHolder} id="board-blank" onContextMenu={(e)=> e.preventDefault()}>
