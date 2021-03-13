@@ -32,7 +32,7 @@ const styles = (theme) => ({
 class Main extends Component {
     constructor(props) {
         super(props)
-        const { match: { params } } = props;
+        const { soundSFX, match: { params } } = props;
         this.state = {
             GameWasmEngine: null,
             isQueuing: false,
@@ -62,7 +62,8 @@ class Main extends Component {
             show_overlay: false,
             moved_to_pos: [0, 0],
             moved_from_pos: [0, 0],
-            _arr: [...Array(64).keys()].reverse()
+            _arr: [...Array(64).keys()].reverse(),
+            soundSFX
         }
     }
 
@@ -152,6 +153,7 @@ class Main extends Component {
     }
 
     updateBoardManually = async (square, square_to_go) => {
+        
         try {
             if (this.state.isPlaying) {
                 if ((this.state.startSide === "black") === this.state.GameWasmEngine.get_side()) {
@@ -160,6 +162,8 @@ class Main extends Component {
 
                         if (!(status[0] === this.state.status[0])) {
                             this.clickOverlay(null)
+                            console.log(this.state.soundSFX.playPieceMoveSfx);
+                            this.state.soundSFX.playPieceMoveSfx()
                             updateGame(this.state.game.id, {token: this.state.user.token, suggested_move: JSON.stringify([square, square_to_go, (this.state.startSide === "black")])})
                             const status = this.state.GameWasmEngine.update_board(square, square_to_go, this.state.promote);
                             window.status = status
@@ -297,9 +301,15 @@ class Main extends Component {
                     if (this.state.game.winner === "abortq") {
                         this.reset()
                         this.startPlay()
+                        this.state.soundSFX.playLoseSfx()
                         return
                     } else {
                         const description = this.state.startSide === this.state.game.winner?"Congratulations":this.state.game.winner === "draw"?"game withdraw.":this.state.game.winner === "stalemate"?"no moves left":this.state.game.winner === "checkmate"?"checkmated.":this.state.game.winner === "abort"?"Game Aborted":"Better Luck next time.";
+                        if (this.state.startSide === this.state.game.winner || this.state.game.winner === "abort") {
+                            this.state.soundSFX.playWinSfx()
+                        } else {
+                            this.state.soundSFX.playLoseSfx()
+                        }
                         const modal = {
                             title,
                             description,
@@ -354,9 +364,10 @@ class Main extends Component {
                         const status = this.state.GameWasmEngine.update_board(approved_move[0], approved_move[1], this.state.promote);
                         window.status = status
                         if (!(status[0] === this.state.status[0])) {
+                            
 
                             if (this.state.game.approved_move !== JSON.stringify(this.state.moved_to_pos) && ((this.state.startSide === "black") === (status[0]===1))) {
-                                
+                                this.state.soundSFX.playPieceOppMoveSfx()
                                 await this.setState({moved_to_pos: approved_move[1]})
                                 await this.setState({moved_from_pos: approved_move[0]})
 

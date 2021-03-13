@@ -10,6 +10,12 @@ import { createMuiTheme, ThemeProvider, makeStyles } from '@material-ui/core/sty
 import Header from "./components/header";
 import { CircularProgress, Container, Grid } from "@material-ui/core"
 import { useState } from 'react';
+import useSound from 'use-sound';
+
+import pieceMoveSfx from "./themes/soundeffects/ES_Suction Plop 1 - SFX Producer.mp3";
+import pieceOppMoveSfx from "./themes/soundeffects/ES_Suction Cup 4 - SFX Producer.mp3";
+import winSfx from "./themes/soundeffects/511484__mattleschuck__success-bell.wav";
+import loseSfx from "./themes/soundeffects/ES_Hit Metallic 3 - SFX Producer.mp3";
 
 let theme = createMuiTheme({
   palette: {
@@ -58,6 +64,11 @@ function App() {
   const classes = useStyles();
   const [ready, setReady] = useState(false);
   const [loadStyle, setLoadStyle] = useState(300);
+  const [playPieceMoveSfx] = useSound(pieceMoveSfx);
+  const [playPieceOppMoveSfx] = useSound(pieceOppMoveSfx);
+  const [playWinSfx] = useSound(winSfx);
+  const [playLoseSfx] = useSound(loseSfx);
+
 
   const readyContent = () => {
     setReady(true)
@@ -76,6 +87,7 @@ function App() {
                     path={c.path}
                     component={c.component}
                     key={i}
+                    soundSFX={{playPieceMoveSfx, playPieceOppMoveSfx, playWinSfx, playLoseSfx}}
                   />
               ):<Container><Grid container direction="column-reverse"
               justify="center"

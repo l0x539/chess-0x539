@@ -2,10 +2,10 @@
 import { Route } from "react-router-dom";
 
 
-const AppRoute = ({component: Component, ...rest}) => (
+const AppRoute = ({soundSFX, component: Component, ...rest}) => (
     <Route 
         {...rest}
-        render={props => <Component {...props}/>}
+        render={props => <Component soundSFX={soundSFX} {...props}/>}
     />
 )
 

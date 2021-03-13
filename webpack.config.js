@@ -34,7 +34,11 @@ module.exports = (env, args) => {
                     options: {
                         name: "static/media/[name].[hash:8].[ext]"
                     }
-                }
+                },
+                {
+                    test: /\.(mp3|wav|mpe?g|ogg)?$/i,
+                    use: 'file-loader'
+                  },
             ]
          },
         plugins: [
