@@ -9,7 +9,7 @@ import Explorer from "../pages/explorer";
 
 export const paths = [
     { path:"/explorer", component: Explorer },
-    { path:"/community", component: Explorer },
+    { path:"/community", component: ComingSoon },
     { path:"/challenge", component: Challenge },
     { path:"/test", component: Test },
     { path:"/:invite", component: Main },

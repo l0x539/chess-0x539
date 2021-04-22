@@ -33,11 +33,14 @@ class Piece extends Component {
         this.setState({
             piece_position: {x: position.x - (board_width/16), y: position.y - (board_height/16)}
         })
+        console.log(e.target.style);
+        e.target.style.zIndex = 3
         this.props.clickOverlay(square+1)
         this.setState({isDragging: false})
     }
       
     stopDragging = (e, ui) => {
+        e.target.style.zIndex = 2
         const { square, board_width, board_height } = this.props;
 
         this.setState({isDragging: false})

@@ -162,7 +162,6 @@ class Main extends Component {
 
                         if (!(status[0] === this.state.status[0])) {
                             this.clickOverlay(null)
-                            console.log(this.state.soundSFX.playPieceMoveSfx);
                             this.state.soundSFX.playPieceMoveSfx()
                             updateGame(this.state.game.id, {token: this.state.user.token, suggested_move: JSON.stringify([square, square_to_go, (this.state.startSide === "black")])})
                             const status = this.state.GameWasmEngine.update_board(square, square_to_go, this.state.promote);
