@@ -62,7 +62,7 @@ $ npm run dev
 1. Setting up rust project:
 * install it using [rustup](https://rustup.rs/):
 ```sh
-$ rustup target add wasm32-unknow-unknown
+$ rustup target add wasm32-unknown-unknown
 ```
 * install [wasm-bindgen-cli](https://rustwasm.github.io/wasm-bindgen/reference/cli.html) using following command:
 ```sh
